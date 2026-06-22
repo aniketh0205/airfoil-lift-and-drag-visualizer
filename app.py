@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+from matplotlib.patches import FancyBboxPatch
 
 st.set_page_config(page_title="Airfoil Lift & Drag Visualizer", page_icon="✈️", layout="wide", initial_sidebar_state="expanded")
 
@@ -239,6 +239,21 @@ def style_chart(fig, ax, title, xlabel, ylabel):
 # Airfoil visualization (matplotlib, publication quality)
 # ---------------------------------------------------------------------------
 
+def _draw_arrow(ax, x1, y1, x2, y2, color, lw=3, head_w=0.045, head_l=0.065):
+    """Draw a line with a filled triangular arrowhead from (x1,y1) to (x2,y2)."""
+    ax.plot([x1, x2], [y1, y2], color=color, linewidth=lw, solid_capstyle="round", zorder=10)
+    dx, dy = x2 - x1, y2 - y1
+    L = math.hypot(dx, dy)
+    if L < 1e-10:
+        return
+    ux, uy = dx / L, dy / L
+    px, py = -uy, ux
+    tip = (x2, y2)
+    bl = (x2 - ux * head_l - px * head_w, y2 - uy * head_l - py * head_w)
+    br = (x2 - ux * head_l + px * head_w, y2 - uy * head_l + py * head_w)
+    ax.fill([tip[0], bl[0], br[0]], [tip[1], bl[1], br[1]], color=color, edgecolor="none", zorder=11)
+
+
 def draw_airfoil(coords, aoa=0, stall=False, width=7, height=3.5, show_forces=True, CL=None, CD=None):
     if not coords or len(coords) < 3:
         fig, ax = plt.subplots(figsize=(width, height), facecolor="#0b1225")
@@ -253,105 +268,90 @@ def draw_airfoil(coords, aoa=0, stall=False, width=7, height=3.5, show_forces=Tr
     aoa = max(-30, min(30, aoa))
     rad = math.radians(aoa)
     cos_a, sin_a = math.cos(rad), math.sin(rad)
-    cx_pt, cy_pt = 0.5, 0
+    cx, cy = 0.5, 0
+    neg = CL is not None and CL < 0
 
     def rot(x, y):
-        dx = (x - cx_pt) * cos_a - (y - cy_pt) * sin_a
-        dy = (x - cx_pt) * sin_a + (y - cy_pt) * cos_a
-        return dx + cx_pt, dy + cy_pt
+        dx = (x - cx) * cos_a - (y - cy) * sin_a
+        dy = (x - cx) * sin_a + (y - cy) * cos_a
+        return dx + cx, dy + cy
 
     pts = np.array([rot(x, y) for x, y in coords])
-    pad_x = 0.08
-    neg_lift = CL is not None and CL < 0
-
     upper = np.array(sorted([rot(x, y) for x, y in coords if y >= -1e-12], key=lambda p: p[0]))
     lower = np.array(sorted([rot(x, y) for x, y in coords if y < -1e-12], key=lambda p: p[0]))
 
-    # Chord line
-    rchord = np.array([rot(x, 0) for x in [-pad_x, 1 + pad_x]])
-    ax.plot(rchord[:, 0], rchord[:, 1], color="#475569", linestyle="--", linewidth=1, alpha=0.5)
+    # Chord line (rotated, dashed)
+    ch = np.array([rot(x, 0) for x in [-0.05, 1.05]])
+    ax.plot(ch[:, 0], ch[:, 1], color="#475569", linestyle="--", linewidth=1, alpha=0.4, zorder=1)
 
-    # Upper fill (blue) / lower fill (red or swapped for neg lift)
+    # Airfoil fill (upper blue, lower red)
     if len(upper) > 1:
-        ax.fill_between(upper[:, 0], 0, upper[:, 1], color="#60a5fa", alpha=0.1, interpolate=False)
+        ax.fill_between(upper[:, 0], 0, upper[:, 1], color="#60a5fa", alpha=0.08, interpolate=False, zorder=2)
     if len(lower) > 1:
-        c = "#ef4444" if not neg_lift else "#60a5fa"
-        ax.fill_between(lower[:, 0], lower[:, 1], 0, color=c, alpha=0.1, interpolate=False)
+        lc = "#ef4444" if not neg else "#60a5fa"
+        ax.fill_between(lower[:, 0], lower[:, 1], 0, color=lc, alpha=0.08, interpolate=False, zorder=2)
 
-    # Outline
-    ax.plot(pts[:, 0], pts[:, 1], color="#93c5fd", linewidth=2.5, zorder=3)
+    # Airfoil outline (thick, clean)
+    ax.plot(pts[:, 0], pts[:, 1], color="#93c5fd", linewidth=2.5, solid_capstyle="round", zorder=3)
 
-    # Flow particles
-    flow_ys = np.linspace(-0.35, 0.35, 10)
-    for fy in flow_ys:
-        if abs(fy) < 0.025:
-            continue
-        rx, ry = rot(0.05, fy)
-        for offset in [0, 0.5, 1.0]:
-            dx = offset * 0.35
-            color = "#ef4444" if stall else "#60a5fa"
-            ax.plot([rx + dx, rx + dx + 0.12], [ry, ry], color=color, linewidth=1.2, alpha=0.25 + 0.05 * (fy + 0.35))
+    # Wind arrow (horizontal from left) + AoA arc
+    wx = -0.04
+    ax.annotate("", xy=(wx + 0.12, 0), xytext=(wx, 0),
+                arrowprops=dict(arrowstyle="->", color="#60a5fa", lw=2.5), zorder=5)
 
-    # Wind arrow & AoA arc
-    wind_tail = -pad_x - 0.04
     if aoa != 0:
         arc_r = 0.22
-        th_end = rad
-        arc_th = np.linspace(0, th_end, 30)
-        ax.plot(wind_tail + arc_r * np.cos(arc_th), arc_r * np.sin(arc_th), color="#60a5fa", linewidth=1.5, alpha=0.5)
-        mid = len(arc_th) // 2
-        ax.annotate("", xy=(wind_tail + arc_r * np.cos(arc_th[mid]), arc_r * np.sin(arc_th[mid])),
-                    xytext=(wind_tail + arc_r * np.cos(arc_th[mid-1]), arc_r * np.sin(arc_th[mid-1])),
-                    arrowprops=dict(arrowstyle="->", color="#60a5fa", lw=1))
-    ax.annotate("", xy=(wind_tail + 0.1, 0), xytext=(wind_tail, 0),
-                arrowprops=dict(arrowstyle="->", color="#60a5fa", lw=2.5))
-    ax.text(wind_tail + 0.02, -0.1, f"Wind  α = {aoa}°", fontsize=10, color="#60a5fa", fontweight="bold")
+        arc_th = np.linspace(0, rad, 40)
+        ax.plot(wx + arc_r * np.cos(arc_th), arc_r * np.sin(arc_th),
+                color="#60a5fa", lw=1.5, alpha=0.5, zorder=2)
+        la = rad * 0.5
+        ax.text(wx + (arc_r + 0.05) * math.cos(la), (arc_r + 0.05) * math.sin(la),
+                f"α = {aoa}°", fontsize=9, color="#60a5fa", fontweight="bold", ha="center", zorder=5)
 
     # Pressure labels
-    top_y = max(pts[:, 1]) + 0.06
-    bot_y = min(pts[:, 1]) - 0.06
-    ax.text(0.5, top_y, "Low Pressure" if not neg_lift else "High Pressure",
-            ha="center", fontsize=10, color="#60a5fa", fontweight="bold")
-    ax.text(0.5, bot_y, "High Pressure" if not neg_lift else "Low Pressure",
-            ha="center", fontsize=10, color="#f87171", fontweight="bold")
+    y_top = max(pts[:, 1])
+    y_bot = min(pts[:, 1])
+    pt = y_top + 0.06
+    pb = y_bot - 0.06
+    ax.text(0.5, pt, "Low Pressure" if not neg else "High Pressure",
+            ha="center", fontsize=9, color="#60a5fa", fontweight="bold", zorder=5)
+    ax.text(0.5, pb, "High Pressure" if not neg else "Low Pressure",
+            ha="center", fontsize=9, color="#f87171", fontweight="bold", zorder=5)
 
-    # Lift/Drag arrows at rotated quarter-chord (FancyArrowPatch for reliable arrowheads)
+    # Lift & Drag arrows at rotated quarter-chord
     if show_forces and CL is not None:
         rqx, rqy = rot(0.25, 0)
-        al = 0.4
+        al = 0.35
         ld = 1 if CL >= 0 else -1
-        lift_arrow = FancyArrowPatch((rqx, rqy), (rqx, rqy + ld * al),
-                                      arrowstyle="-|>", mutation_scale=40,
-                                      facecolor="#22c55e", edgecolor="none", linewidth=0, zorder=10)
-        ax.add_patch(lift_arrow)
-        ax.text(rqx + 0.04, rqy + ld * al * 0.5, "Lift", fontsize=11, color="#22c55e", fontweight="bold", va="center", zorder=10)
-        drag_arrow = FancyArrowPatch((rqx, rqy), (rqx + 0.75 * al, rqy),
-                                      arrowstyle="-|>", mutation_scale=40,
-                                      facecolor="#f97316", edgecolor="none", linewidth=0, zorder=10)
-        ax.add_patch(drag_arrow)
-        ax.text(rqx + 0.37 * al, rqy - 0.05, "Drag", fontsize=11, color="#f97316", fontweight="bold", ha="center", zorder=10)
 
-    # Stall overlay
+        # Lift arrow (vertical, points up for +CL)
+        _draw_arrow(ax, rqx, rqy, rqx, rqy + ld * al, "#22c55e")
+        ax.text(rqx + 0.045, rqy + ld * al * 0.5, "Lift", fontsize=11,
+                color="#22c55e", fontweight="bold", va="center", zorder=10)
+        ax.text(rqx + 0.045, rqy + ld * al * 0.5 - 0.04, f"CL = {CL:.4f}", fontsize=7,
+                color="#22c55e", alpha=0.7, va="center", zorder=10)
+
+        # Drag arrow (horizontal, rearward)
+        _draw_arrow(ax, rqx, rqy, rqx + 0.75 * al, rqy, "#f97316")
+        ax.text(rqx + 0.35 * al, rqy - 0.07, "Drag", fontsize=11,
+                color="#f97316", fontweight="bold", ha="center", zorder=10)
+        ax.text(rqx + 0.35 * al, rqy - 0.11, f"CD = {CD:.4f}", fontsize=7,
+                color="#f97316", alpha=0.7, ha="center", zorder=10)
+
+    # Stall badge (clean, rounded)
     if stall:
-        ax.add_patch(FancyBboxPatch((0.5 - 0.13, 0.07), 0.26, 0.07, boxstyle="round,pad=0.02",
-                                     facecolor="#ef4444", alpha=0.85, zorder=15, transform=ax.transData))
-        ax.text(0.5, 0.105, "STALL — Flow Separated", ha="center", va="center",
+        ax.add_patch(FancyBboxPatch((0.5 - 0.1, 0.09), 0.2, 0.055,
+                                     boxstyle="round,pad=0.015",
+                                     facecolor="#ef4444", alpha=0.92, zorder=15, transform=ax.transData))
+        ax.text(0.5, 0.1175, "STALL", ha="center", va="center",
                 fontsize=10, fontweight="bold", color="white", zorder=16)
-        te_x, te_y = rot(1.0, 0)
-        for i in range(4):
-            sx = te_x + 0.02 + i * 0.04
-            ax.plot([sx, sx + 0.02, sx + 0.04], [te_y - 0.02 + i * 0.008, te_y + 0.02 + i * 0.008, te_y - 0.01 + i * 0.008],
-                    color="#ef4444", linewidth=1.5, alpha=0.7, zorder=5)
 
-    # AoA label
-    ax.text(0.98, -0.22, f"AoA {aoa}°", fontsize=9, color="#5a6f8a", fontfamily="monospace",
-            ha="right", transform=ax.transData)
-
+    # Axes limits
     ax.set_aspect("equal")
     ax.set_xlim(-0.12, 1.12)
-    ym = max(abs(top_y) + 0.08, abs(bot_y) + 0.08, 0.28)
+    ym = max(abs(y_top) + 0.09, abs(y_bot) + 0.09, 0.28)
     if show_forces and CL is not None:
-        ym = max(ym, 0.5)
+        ym = max(ym, 0.52)
     ax.set_ylim(-ym, ym)
     ax.axis("off")
     fig.tight_layout()
