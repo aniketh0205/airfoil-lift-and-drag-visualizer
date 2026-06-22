@@ -350,6 +350,8 @@ def draw_airfoil(coords, aoa=0, stall=False, width=7, height=3.5, show_forces=Tr
     ax.set_aspect("equal")
     ax.set_xlim(-0.12, 1.12)
     ym = max(abs(top_y) + 0.08, abs(bot_y) + 0.08, 0.28)
+    if show_forces and CL is not None:
+        ym = max(ym, 0.5)
     ax.set_ylim(-ym, ym)
     ax.axis("off")
     fig.tight_layout()
@@ -524,14 +526,17 @@ def page_home():
     with col1:
         if st.button("Start Simulation", use_container_width=True):
             st.session_state["nav"] = "Simulator"
+            st.session_state.pop("nav_radio", None)
             st.rerun()
     with col2:
         if st.button("Custom Airfoil", use_container_width=True):
             st.session_state["nav"] = "Custom Airfoil"
+            st.session_state.pop("nav_radio", None)
             st.rerun()
     with col3:
         if st.button("Compare Airfoils", use_container_width=True):
             st.session_state["nav"] = "Compare"
+            st.session_state.pop("nav_radio", None)
             st.rerun()
 
     st.markdown("<h2 style='text-align:center;margin-top:2rem;'>Understanding Aerodynamics</h2>", unsafe_allow_html=True)
