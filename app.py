@@ -305,38 +305,39 @@ def draw_airfoil(coords, aoa=0, stall=False, width=7, height=3.5, show_forces=Tr
         ax.plot(wx + arc_r * np.cos(arc_th), arc_r * np.sin(arc_th),
                 color="#60a5fa", lw=1.5, alpha=0.5, zorder=2)
         la = rad * 0.5
-        ax.text(wx + (arc_r + 0.05) * math.cos(la), (arc_r + 0.05) * math.sin(la),
-                f"α = {aoa}°", fontsize=9, color="#60a5fa", fontweight="bold", ha="center", zorder=5)
+        ax.text(wx + (arc_r + 0.07) * math.cos(la), (arc_r + 0.07) * math.sin(la),
+                f"α = {aoa}°", fontsize=9, color="#60a5fa", fontweight="bold", ha="center", zorder=5, bbox=dict(boxstyle="round,pad=0.08", facecolor="#0f1420", edgecolor="none", alpha=0.75))
 
     # Pressure labels
     y_top = max(pts[:, 1])
     y_bot = min(pts[:, 1])
-    pt = y_top + 0.1
-    pb = y_bot - 0.1
+    pt = y_top + 0.12
+    pb = y_bot - 0.12
+    bbg = dict(boxstyle="round,pad=0.1", facecolor="#0f1420", edgecolor="none", alpha=0.75)
     ax.text(0.5, pt, "Low Pressure" if not neg else "High Pressure",
-            ha="center", fontsize=9, color="#60a5fa", fontweight="bold", zorder=5)
+            ha="center", fontsize=9, color="#60a5fa", fontweight="bold", zorder=5, bbox=bbg)
     ax.text(0.5, pb, "High Pressure" if not neg else "Low Pressure",
-            ha="center", fontsize=9, color="#f87171", fontweight="bold", zorder=5)
+            ha="center", fontsize=9, color="#f87171", fontweight="bold", zorder=5, bbox=bbg)
 
     # Lift & Drag arrows at rotated quarter-chord
     if show_forces and CL is not None:
         rqx, rqy = rot(0.25, 0)
-        al = 0.4
+        al = 0.35
         ld = 1 if CL >= 0 else -1
 
-        # Lift arrow (vertical, points up for +CL)
+        # Lift arrow
         _draw_arrow(ax, rqx, rqy, rqx, rqy + ld * al, "#22c55e")
         ax.text(rqx + 0.05, rqy + ld * al * 0.55, "Lift", fontsize=12,
-                color="#22c55e", fontweight="bold", va="center", zorder=10)
-        ax.text(rqx + 0.05, rqy + ld * al * 0.55 - 0.06, f"CL = {CL:.4f}", fontsize=7,
-                color="#22c55e", alpha=0.7, va="center", zorder=10)
+                color="#22c55e", fontweight="bold", va="center", zorder=10, bbox=bbg)
+        ax.text(rqx + 0.05, rqy + ld * al + 0.02, f"CL={CL:.4f}", fontsize=7,
+                color="#22c55e", alpha=0.85, va="bottom", zorder=10, bbox=bbg)
 
-        # Drag arrow (horizontal, rearward)
+        # Drag arrow
         _draw_arrow(ax, rqx, rqy, rqx + 0.75 * al, rqy, "#f97316")
         ax.text(rqx + 0.35 * al, rqy - 0.1, "Drag", fontsize=12,
-                color="#f97316", fontweight="bold", ha="center", zorder=10)
-        ax.text(rqx + 0.35 * al, rqy - 0.16, f"CD = {CD:.4f}", fontsize=7,
-                color="#f97316", alpha=0.7, ha="center", zorder=10)
+                color="#f97316", fontweight="bold", ha="center", va="center", zorder=10, bbox=bbg)
+        ax.text(rqx + 0.75 * al + 0.02, rqy, f"CD={CD:.4f}", fontsize=7,
+                color="#f97316", alpha=0.85, va="center", zorder=10, bbox=bbg)
 
     # Stall badge
     if stall:
