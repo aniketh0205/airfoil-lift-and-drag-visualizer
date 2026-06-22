@@ -291,28 +291,29 @@ def draw_airfoil(coords, aoa=0, stall=False, width=7, height=3.5, show_forces=Tr
                     arrowprops=dict(arrowstyle="->", color="#60a5fa", lw=1.5))
         ax.text(-pad_x + 0.04, -0.12, "Wind", fontsize=9, color="#60a5fa", fontweight="bold")
 
-    # Lift/Drag arrows at quarter-chord
+    # Lift/Drag arrows at quarter-chord (rotated with airfoil)
     if show_forces and CL is not None:
-        qx = 0.25
-        arrow_len = 0.15
+        qx, qy = 0.25, 0
+        rqx = (qx - cx_pt) * cos_a - (qy - cy_pt) * sin_a + cx_pt
+        rqy = (qx - cx_pt) * sin_a + (qy - cy_pt) * cos_a + cy_pt
+        arrow_len = 0.3
         lift_sign = -1 if CL >= 0 else 1
-        # Lift arrow (vertical - perpendicular to chord)
-        ax.annotate("", xy=(qx, lift_sign * arrow_len), xytext=(qx, 0),
-                    arrowprops=dict(arrowstyle="->", color="#22c55e", lw=2.5))
-        ax.text(qx + 0.02, lift_sign * arrow_len * 0.5, "Lift", fontsize=9, color="#22c55e", fontweight="bold",
-                va="center")
-        # Drag arrow (horizontal - parallel to chord, rearward)
-        ax.annotate("", xy=(qx + arrow_len * 0.8, 0), xytext=(qx, 0),
-                    arrowprops=dict(arrowstyle="->", color="#f97316", lw=2.5))
-        ax.text(qx + arrow_len * 0.4, 0.02, "Drag", fontsize=9, color="#f97316", fontweight="bold", ha="center")
+        # Lift arrow (perpendicular to relative wind = vertical)
+        ax.annotate("", xy=(rqx, rqy + lift_sign * arrow_len), xytext=(rqx, rqy),
+                    arrowprops=dict(arrowstyle="->", color="#22c55e", lw=3, mutation_scale=20))
+        ax.text(rqx + 0.03, rqy + lift_sign * arrow_len * 0.5, "Lift", fontsize=10, color="#22c55e", fontweight="bold", va="center")
+        # Drag arrow (parallel to relative wind = horizontal, rearward)
+        ax.annotate("", xy=(rqx + 0.7 * arrow_len, rqy), xytext=(rqx, rqy),
+                    arrowprops=dict(arrowstyle="->", color="#f97316", lw=3, mutation_scale=20))
+        ax.text(rqx + 0.35 * arrow_len, rqy + 0.03, "Drag", fontsize=10, color="#f97316", fontweight="bold", ha="center")
 
     # Pressure labels
     _, ymax = max(rpts, key=lambda p: p[1])
     _, ymin = min(rpts, key=lambda p: p[1])
-    top_label_y = ymax + 0.04
-    bot_label_y = ymin - 0.04
-    ax.text(0.5, top_label_y, "Low Pressure", ha="center", fontsize=9, color="#60a5fa", fontweight="bold")
-    ax.text(0.5, bot_label_y, "High Pressure", ha="center", fontsize=9, color="#f87171", fontweight="bold")
+    top_label_y = ymax + 0.05
+    bot_label_y = ymin - 0.05
+    ax.text(0.5, top_label_y, "Low Pressure", ha="center", fontsize=10, color="#60a5fa", fontweight="bold")
+    ax.text(0.5, bot_label_y, "High Pressure", ha="center", fontsize=10, color="#f87171", fontweight="bold")
 
     ax.set_aspect("equal")
     x_margin = 0.12
@@ -524,50 +525,50 @@ def page_simulator():
     foil = all_foils[sel_name]
     coords = foil.get("coords")
 
-    col_info, col_viz = st.columns([1, 1.5])
-    with col_info:
-        st.markdown(f"<div class='card'><h3>Airfoil Properties</h3><p><b>Type:</b> {foil['type']}</p><p><b>Thickness:</b> {foil['maxThickness']*100:.1f}%</p><p><b>Camber:</b> {foil['maxCamber']*100:.2f}%</p><p><b>Stall Angle:</b> {foil['stallAngle']} deg</p><p><b>Zero-Lift Angle:</b> {foil['zeroLiftAngle']} deg</p></div>", unsafe_allow_html=True)
-
-    with col_viz:
-        aoa = st.slider("Angle of Attack (deg)", -5, 20, 5, 1)
-        fig = draw_airfoil(coords, aoa, False)
-        st.pyplot(fig)
-        plt.close(fig)
+    st.markdown(f"<div class='card'><h3>Airfoil Properties</h3><p><b>Type:</b> {foil['type']} &nbsp;|&nbsp; <b>Thickness:</b> {foil['maxThickness']*100:.1f}% &nbsp;|&nbsp; <b>Camber:</b> {foil['maxCamber']*100:.2f}% &nbsp;|&nbsp; <b>Stall:</b> {foil['stallAngle']} deg &nbsp;|&nbsp; <b>a0:</b> {foil['zeroLiftAngle']} deg</p></div>", unsafe_allow_html=True)
 
     st.markdown("<h2>Flight Parameters</h2>", unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        velocity = st.slider("Velocity (m/s)", 5, 100, 30, 1)
+        aoa = st.slider("Angle of Attack (deg)", -5, 20, 5, 1)
     with c2:
-        chord = st.slider("Chord Length (m)", 0.1, 2.0, 1.0, 0.05)
+        velocity = st.slider("Velocity (m/s)", 5, 100, 30, 1)
     with c3:
-        air_density = st.number_input("Air Density (kg/m3)", 0.1, 2.0, 1.225, 0.001, format="%.3f")
+        chord = st.slider("Chord Length (m)", 0.1, 2.0, 1.0, 0.05)
     with c4:
-        wing_span = st.slider("Wing Span (m)", 1.0, 50.0, 10.0, 0.5)
+        air_density = st.number_input("Air Density (kg/m3)", 0.1, 2.0, 1.225, 0.001, format="%.3f")
 
     result = calculate_aerodynamics(aoa, foil["stallAngle"], foil["zeroLiftAngle"],
                                      foil["maxCamber"], foil["maxThickness"],
                                      velocity, chord, air_density)
 
+    st.markdown("<h2>Airfoil Visualization</h2>", unsafe_allow_html=True)
+    fig = draw_airfoil(coords, aoa, result["stallWarning"], show_forces=True,
+                        CL=result["CL"], CD=result["CD"])
+    st.pyplot(fig)
+    plt.close(fig)
+
     if result["stallWarning"]:
         st.error(f"STALL WARNING: Angle of attack exceeds the stall angle ({result['effectiveStall']} deg). Lift decreases, drag increases rapidly.")
 
-    st.markdown("<h2>Results (per meter of wing span)</h2>", unsafe_allow_html=True)
-    c1, c2, c3, c4, c5, c6, c7 = st.columns(7)
-    c1.metric("CL", result["CL"])
-    c2.metric("CD", result["CD"])
-    c3.metric("L/D", result["LD"])
-    c4.metric("Lift/m", f"{result['liftPerMeter']:.2f} N")
-    c5.metric("Drag/m", f"{result['dragPerMeter']:.2f} N")
-    c6.metric("Total Lift", f"{result['liftPerMeter'] * wing_span:.2f} N")
-    c7.metric("Re", f"{result['Re']:,}")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Lift Coefficient (CL)", result["CL"])
+    c2.metric("Drag Coefficient (CD)", result["CD"])
+    c3.metric("L/D Ratio", result["LD"])
+
+    wing_span = st.slider("Wing Span (m)", 1.0, 50.0, 10.0, 0.5, key="sim_span")
+    st.markdown(f"<div class='card' style='text-align:center;'><h2 style='margin:0;'>"
+                f"<span style='color:#22c55e;'>Lift: {result['liftPerMeter'] * wing_span:.2f} N</span>"
+                f" &nbsp;|&nbsp; "
+                f"<span style='color:#f97316;'>Drag: {result['dragPerMeter'] * wing_span:.2f} N</span>"
+                f" &nbsp;|&nbsp; Re: {result['Re']:,}</h2></div>", unsafe_allow_html=True)
 
     expl = generate_explanation(aoa, result["CL"], result["CD"], result["LD"],
                                  result["stallWarning"], foil["maxCamber"],
                                  foil["zeroLiftAngle"], result["effectiveStall"], result["Re"])
     st.info(expl)
 
-    # Charts
+    # Charts (no operating point markers)
     st.markdown("<h2>Aerodynamic Characteristic Curves</h2>", unsafe_allow_html=True)
     alpha_range = np.linspace(-5, 20, 101)
     CLs = [calculate_aerodynamics(a, foil["stallAngle"], foil["zeroLiftAngle"],
@@ -585,7 +586,6 @@ def page_simulator():
         ax.plot(alpha_range, CLs, "-", color="#3b82f6", linewidth=2, label=sel_name)
         ax.axvline(x=foil["stallAngle"], color="#ef4444", linestyle="--", alpha=0.7, label=f"Stall ({foil['stallAngle']} deg)")
         ax.axvline(x=foil["zeroLiftAngle"], color="#64748b", linestyle=":", alpha=0.5, label=f"a0={foil['zeroLiftAngle']} deg")
-        ax.plot(aoa, result["CL"], "r*", markersize=15, zorder=5, label="Operating Point")
         style_chart(fig, ax, "CL vs Angle of Attack", "AoA (deg)", "CL")
         st.pyplot(fig); plt.close(fig)
 
@@ -593,21 +593,18 @@ def page_simulator():
         fig, ax = plt.subplots(figsize=(8, 3.5))
         ax.plot(alpha_range, CDs, "-", color="#ef4444", linewidth=2, label=sel_name)
         ax.axvline(x=12, color="#a855f7", linestyle="--", alpha=0.7, label="High drag onset (12 deg)")
-        ax.plot(aoa, result["CD"], "r*", markersize=15, zorder=5, label="Operating Point")
         style_chart(fig, ax, "CD vs Angle of Attack", "AoA (deg)", "CD")
         st.pyplot(fig); plt.close(fig)
 
     with tab3:
         fig, ax = plt.subplots(figsize=(8, 3.5))
         ax.plot(CDs, CLs, "-", color="#22c55e", linewidth=2, label=sel_name)
-        ax.plot(result["CD"], result["CL"], "r*", markersize=15, zorder=5, label="Operating Point")
         style_chart(fig, ax, "Drag Polar (CL vs CD)", "CD", "CL")
         st.pyplot(fig); plt.close(fig)
 
     with tab4:
         fig, ax = plt.subplots(figsize=(8, 3.5))
         ax.plot(alpha_range, LDs, "-", color="#a855f7", linewidth=2, label=sel_name)
-        ax.plot(aoa, result["LD"], "r*", markersize=15, zorder=5, label="Operating Point")
         style_chart(fig, ax, "L/D Ratio vs Angle of Attack", "AoA (deg)", "L/D")
         st.pyplot(fig); plt.close(fig)
 
@@ -619,10 +616,8 @@ def page_simulator():
                                            foil["maxThickness"], v, chord, air_density)["dragPerMeter"] for v in vel_range]
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 3.5))
         ax1.plot(vel_range, lifts_v, "-", color="#22c55e", linewidth=2)
-        ax1.plot(velocity, result["liftPerMeter"], "r*", markersize=12)
         style_chart(fig, ax1, "Velocity vs Lift", "Velocity (m/s)", "Lift (N/m)")
         ax2.plot(vel_range, drags_v, "-", color="#f97316", linewidth=2)
-        ax2.plot(velocity, result["dragPerMeter"], "r*", markersize=12)
         style_chart(fig, ax2, "Velocity vs Drag", "Velocity (m/s)", "Drag (N/m)")
         st.pyplot(fig); plt.close(fig)
 
@@ -873,14 +868,63 @@ def page_about():
     st.markdown("<p style='text-align:center;'>An interdisciplinary engineering education project</p>", unsafe_allow_html=True)
 
     sections = [
-        ("Problem Statement", "Students often find it difficult to understand lift and drag using only formulas and static diagrams. This project provides an interactive visual platform to understand how airfoil geometry, velocity, and angle of attack affect aerodynamic forces."),
-        ("Objectives", "Visualize lift and drag on airfoils. Change aerodynamic parameters interactively. Support predefined and custom airfoils. Calculate lift, drag, Cl, Cd, and L/D ratio. Help students understand stall. Compare different airfoils."),
-        ("Methodology", "Simplified aerodynamic models based on thin airfoil theory and empirical approximations. Uses educational formulas that capture essential physics without CFD-level computation."),
-        ("Interdisciplinary", "Aeronautical Engineering provides the physics of lift, drag, and airfoil design. Computer Science provides interactive visualization, real-time computation, and a clean user interface."),
-        ("Limitations", "Uses simplified approximations, not CFD. Not for real aircraft design. No compressibility effects at high Mach. Limited to 2D analysis (no 3D wing effects).")
+        {"title": "Problem Statement", "content": "Students often find it difficult to understand lift and drag using only formulas and static diagrams. This project provides an interactive visual platform to understand how airfoil geometry, velocity, and angle of attack affect aerodynamic forces."},
+        {"title": "Objectives", "items": [
+            "To visualize lift and drag generation on airfoils",
+            "To allow users to change aerodynamic parameters interactively",
+            "To support predefined and custom airfoil coordinate files",
+            "To calculate lift, drag, Cl, Cd, and L/D ratio",
+            "To help students understand stall and pressure difference",
+            "To compare different airfoil shapes"
+        ]},
+        {"title": "Methodology", "content": "This application uses simplified aerodynamic models based on thin airfoil theory and empirical approximations. Predefined airfoil data is stored in JSON format. Custom airfoil coordinates are parsed, normalized, and analyzed to estimate geometric properties. Aerodynamic coefficients are calculated using educational formulas that capture the essential physics without requiring CFD-level computation."},
+        {"title": "Interdisciplinary Connection", "content": "This project bridges Aeronautical Engineering and Computer Science. Aeronautical engineering provides the physics of lift, drag, and airfoil design. Computer science provides interactive visualization, web development, API design, and real-time data processing. The combination creates an engaging educational tool that makes complex concepts accessible."},
+        {"title": "Applications", "items": [
+            "Aerospace engineering education",
+            "Student projects and demonstrations",
+            "Understanding airfoil selection for aircraft design",
+            "Preliminary aerodynamic analysis",
+            "STEM outreach and teaching"
+        ]},
+        {"title": "Advantages", "items": [
+            "Interactive real-time visualization",
+            "Supports both predefined and custom airfoils",
+            "No installation required - runs in a web browser",
+            "Clean, intuitive user interface",
+            "Educational explanations for every condition",
+            "Modular code structure for easy extension"
+        ]},
+        {"title": "Limitations", "items": [
+            "Uses simplified aerodynamic approximations, not CFD",
+            "Not suitable for real aircraft design without validation",
+            "Does not account for compressibility effects at high Mach numbers",
+            "Limited to 2D airfoil analysis (no 3D wing effects)",
+            "No boundary layer or transition modeling",
+            "No wind tunnel data correlation"
+        ]},
+        {"title": "Future Scope", "items": [
+            "Add real CFD visualization using panel methods",
+            "Integrate with XFOIL for more accurate analysis",
+            "Add database for saving simulations (MongoDB/PostgreSQL)",
+            "Add user login and authentication",
+            "Export results as PDF reports",
+            "Add wind tunnel data comparison",
+            "Add 3D wing visualization and wingtip effects",
+            "Include Reynolds number and Mach number effects",
+            "Add multi-element airfoil support (flaps, slats)"
+        ]}
     ]
-    for title, content in sections:
-        st.markdown(f"<div class='card'><h3>{title}</h3><p>{content}</p></div>", unsafe_allow_html=True)
+    for s in sections:
+        html = f"<div class='card'><h3>{s['title']}</h3>"
+        if "content" in s:
+            html += f"<p>{s['content']}</p>"
+        if "items" in s:
+            html += "<ul style='margin:0.5rem 0 0 0;padding-left:1.2rem;'>"
+            for item in s["items"]:
+                html += f"<li style='margin-bottom:0.3rem;'>{item}</li>"
+            html += "</ul>"
+        html += "</div>"
+        st.markdown(html, unsafe_allow_html=True)
 
     st.markdown("<div class='card card-center'><p style='color:#5a6f8a;font-size:0.85rem;'>Built with Streamlit, NumPy & Matplotlib. Uses simplified aerodynamic approximations for educational visualization.</p></div>", unsafe_allow_html=True)
 
