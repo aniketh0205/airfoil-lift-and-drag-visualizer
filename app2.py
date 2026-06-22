@@ -17,199 +17,210 @@ matplotlib.use("Agg")
 def inject_custom_css():
     st.markdown("""
     <style>
-        /* Main container styling */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        html, body, [class*="css"] {
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+        
         .main .block-container {
-            padding-top: 2rem;
+            padding-top: 1.5rem;
             padding-bottom: 2rem;
+            max-width: 1200px;
         }
         
-        /* Card-like sections */
-        .stMetric {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 1rem;
-            border-radius: 12px;
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        .stApp {
+            background: #0f1117;
         }
         
-        .stMetric label {
-            color: rgba(255,255,255,0.85) !important;
-        }
-        
-        .stMetric [data-testid="stMetricValue"] {
-            color: white !important;
-            font-weight: 700;
-        }
-        
-        /* Headers styling */
         h1 {
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 800 !important;
+            color: #f0f0f0 !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.02em;
         }
         
         h2, h3 {
-            color: #4a5568;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 0.5rem;
+            color: #e0e0e0 !important;
+            font-weight: 600 !important;
         }
         
-        /* Sidebar styling */
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            background: #161822;
+            border-right: 1px solid #252836;
         }
         
-        [data-testid="stSidebar"] .stMarkdown {
-            color: #e2e8f0;
-        }
-        
+        [data-testid="stSidebar"] .stMarkdown, 
         [data-testid="stSidebar"] .stRadio label {
-            color: #e2e8f0 !important;
+            color: #b0b3c0 !important;
         }
         
-        /* Button styling */
-        .stButton > button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
+        .stSelectbox > div > div {
+            background: #1e2030 !important;
+            border: 1px solid #2d3148 !important;
+            color: #e0e0e0 !important;
             border-radius: 8px;
-            padding: 0.5rem 2rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .stSelectbox [data-testid="stMarkdownContainer"] {
+            color: #e0e0e0 !important;
+        }
+        
+        .stSlider > div > div > div {
+            color: #6c7bff !important;
+        }
+        
+        .stSlider [data-baseweb="slider"] div {
+            background: #6c7bff !important;
+        }
+        
+        .stTextInput input, .stNumberInput input, .stTextArea textarea {
+            background: #1e2030 !important;
+            border: 1px solid #2d3148 !important;
+            color: #e0e0e0 !important;
+            border-radius: 8px;
+        }
+        
+        .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus {
+            border-color: #6c7bff !important;
+            box-shadow: 0 0 0 2px rgba(108, 123, 255, 0.2) !important;
+        }
+        
+        .stButton > button {
+            background: #6c7bff !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            padding: 0.5rem 1.5rem !important;
+            transition: all 0.2s !important;
         }
         
         .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            background: #5a6ae0 !important;
+            box-shadow: 0 4px 15px rgba(108, 123, 255, 0.3) !important;
         }
         
-        /* Selectbox and sliders */
-        .stSelectbox > div > div {
-            border-radius: 8px;
-        }
-        
-        /* Info boxes - Dark themed */
         .stAlert {
-            border-radius: 12px;
-            border: none;
+            border-radius: 8px !important;
+            border: none !important;
         }
         
-        /* Expander styling - Dark themed */
-        .streamlit-expanderHeader {
-            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-            border-radius: 8px;
-            color: #e2e8f0 !important;
-        }
-        
-        /* Text area - Dark themed */
-        .stTextArea textarea {
-            border-radius: 8px;
-            border: 2px solid #4a5568;
-            background-color: #1a202c;
-            color: #e2e8f0;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .stTextArea textarea:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
-        }
-        
-        .stTextArea textarea::placeholder {
-            color: #718096;
-        }
-        
-        /* Text input - Dark themed */
-        .stTextInput input {
-            border-radius: 8px;
-            border: 2px solid #4a5568;
-            background-color: #1a202c;
-            color: #e2e8f0;
-        }
-        
-        .stTextInput input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
-        }
-        
-        .stTextInput input::placeholder {
-            color: #718096;
-        }
-        
-        /* Number input - Dark themed */
-        .stNumberInput input {
-            border-radius: 8px;
-            border: 2px solid #4a5568;
-            background-color: #1a202c;
-            color: #e2e8f0;
-        }
-        
-        .stNumberInput input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
-        }
-        
-        /* Divider */
         hr {
             border: none;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #667eea, transparent);
-            margin: 2rem 0;
+            height: 1px;
+            background: #252836;
+            margin: 1.5rem 0;
         }
         
-        /* Dark info boxes */
-        .dark-info-box {
-            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
-            color: #e2e8f0;
-            margin-bottom: 1.5rem;
+        .info-card {
+            background: #1a1c2a;
+            border: 1px solid #252836;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            border-left: 3px solid #6c7bff;
         }
         
-        .dark-info-box p {
-            color: #e2e8f0;
+        .info-card p {
+            color: #b0b3c0;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .metric-card {
+            padding: 1.25rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #252836;
+        }
+        
+        .metric-card .label {
+            color: #888;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .metric-card .value {
+            font-size: 1.75rem;
+            font-weight: 700;
             margin: 0;
         }
         
-        /* Theory card styling */
+        .stall-warning-modern {
+            background: #2a1515;
+            border: 1px solid #e53e3e;
+            border-radius: 10px;
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .stall-warning-modern .icon {
+            color: #fc8181;
+            font-size: 1.5rem;
+        }
+        
+        .stall-warning-modern .text {
+            color: #fc8181;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .stall-warning-modern .sub {
+            color: #a0a0a0;
+            font-size: 0.8rem;
+        }
+        
         .theory-card {
-            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #667eea;
+            background: #1a1c2a;
+            border: 1px solid #252836;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 0.75rem;
+            transition: border-color 0.2s;
+        }
+        
+        .theory-card:hover {
+            border-color: #6c7bff;
         }
         
         .theory-card h4 {
-            color: #a78bfa;
-            margin: 0 0 0.5rem 0;
-            font-size: 1.1rem;
+            color: #6c7bff;
+            margin: 0 0 0.4rem 0;
+            font-size: 1rem;
         }
         
         .theory-card p {
-            color: #cbd5e0;
+            color: #9ca3af;
             margin: 0;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             line-height: 1.6;
         }
         
-        /* Stall warning */
-        .stall-warning {
-            background: linear-gradient(135deg, #c53030 0%, #9b2c2c 100%);
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            color: white;
-            text-align: center;
-            animation: pulse 1.5s infinite;
+        .param-label {
+            color: #888;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        [data-testid="stMetricValue"] {
+            font-size: 1.5rem !important;
+            font-weight: 700 !important;
+        }
+        
+        [data-testid="stMetricLabel"] {
+            color: #888 !important;
+            font-size: 0.75rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+        }
+        
+        .st-bd, .st-be, .st-bf, .st-bg {
+            border-color: #2d3148 !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -455,19 +466,19 @@ def get_all_airfoils() -> dict:
 # ---------------------------------------------------------------------------
 
 def style_chart(fig, ax, title, xlabel, ylabel):
-    """Apply consistent professional styling to matplotlib charts."""
-    ax.set_xlabel(xlabel, fontsize=11, fontweight='500', color='#4a5568')
-    ax.set_ylabel(ylabel, fontsize=11, fontweight='500', color='#4a5568')
-    ax.set_title(title, fontsize=13, fontweight='600', color='#2d3748', pad=15)
-    ax.grid(True, linestyle='--', alpha=0.4, color='#a0aec0')
-    ax.set_facecolor('#fafbfc')
-    fig.patch.set_facecolor('#ffffff')
+    """Apply dark theme styling to matplotlib charts."""
+    ax.set_xlabel(xlabel, fontsize=10, color='#888')
+    ax.set_ylabel(ylabel, fontsize=10, color='#888')
+    ax.set_title(title, fontsize=11, fontweight='600', color='#ccc', pad=12)
+    ax.grid(True, linestyle='--', alpha=0.15, color='#555')
+    ax.set_facecolor('#11131f')
+    fig.patch.set_facecolor('#0f1117')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_color('#cbd5e0')
-    ax.spines['bottom'].set_color('#cbd5e0')
-    ax.tick_params(colors='#4a5568', labelsize=9)
-    ax.legend(fontsize=9, framealpha=0.95, loc='best')
+    ax.spines['left'].set_color('#2d3148')
+    ax.spines['bottom'].set_color('#2d3148')
+    ax.tick_params(colors='#888', labelsize=8)
+    ax.legend(fontsize=8, framealpha=0.3, loc='best', labelcolor='#aaa')
     fig.tight_layout()
 
 
@@ -475,74 +486,57 @@ def style_chart(fig, ax, title, xlabel, ylabel):
 # Page: Lift and Drag Visualizer
 # ---------------------------------------------------------------------------
 
-def page_visualizer():
-    st.header("✈️ Lift & Drag Simulator")
-    
-    st.markdown("""
-    <div class="dark-info-box">
-        <p>🎯 <b>Interactive Flight Simulator</b> — Select an airfoil and adjust parameters to calculate 
-        lift and drag forces using simplified aerodynamic equations.</p>
+def card_html(label, value, color):
+    return f"""
+    <div class="metric-card" style="border-top: 3px solid {color};">
+        <p class="label">{label}</p>
+        <p class="value" style="color: {color};">{value}</p>
     </div>
-    """, unsafe_allow_html=True)
+    """
+
+def page_visualizer():
+    col_title, col_status = st.columns([3, 1])
+    with col_title:
+        st.header("Lift & Drag Simulator")
+    with col_status:
+        airfoils_all = get_all_airfoils()
+        st.markdown(f'<p style="color:#888;font-size:0.8rem;text-align:right;">{len(airfoils_all)} airfoils loaded</p>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="info-card"><p>Select an airfoil and adjust flight parameters to see real-time aerodynamic calculations.</p></div>', unsafe_allow_html=True)
 
     airfoils = get_all_airfoils()
     airfoil_names = list(airfoils.keys())
 
-    # --- Airfoil selector ---
-    col_select, col_info = st.columns([2, 1])
-    with col_select:
-        selected = st.selectbox("🔧 Select Airfoil", airfoil_names, 
-                               help="Choose from predefined airfoils or your custom uploads")
+    col_sel, col_info = st.columns([2, 1])
+    with col_sel:
+        selected = st.selectbox("Airfoil", airfoil_names, label_visibility="collapsed")
     
     foil = airfoils[selected]
     
     with col_info:
-        st.markdown(f"""
-        <div style="background: #2d3748; padding: 0.75rem; border-radius: 8px; margin-top: 1.5rem;">
-            <small style="color: #a0aec0;">
-                Camber: <b style="color:#e2e8f0;">{foil['maxCamber']*100:.1f}%</b> | 
-                Thickness: <b style="color:#e2e8f0;">{foil['maxThickness']*100:.1f}%</b>
-            </small>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div style="background:#1a1c2a;border:1px solid #252836;border-radius:8px;padding:0.6rem 1rem;text-align:center;"><span style="color:#888;font-size:0.75rem;">{foil["description"]}</span></div>', unsafe_allow_html=True)
 
     st.markdown("---")
 
-    # --- Input controls ---
-    st.subheader("⚙️ Flight Parameters")
+    st.markdown('<p class="param-label">Flight Parameters</p>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.markdown("**📐 Angle of Attack**")
-        aoa = st.slider("Angle of Attack (°)", min_value=-5.0, max_value=20.0, value=5.0, step=0.5,
-                       help="Wing angle relative to airflow")
-        
-        st.markdown("**🌬️ Velocity**")
-        velocity = st.slider("Velocity (m/s)", min_value=5.0, max_value=100.0, value=30.0, step=1.0,
-                            help="Airspeed in meters per second")
+        aoa = st.slider("Angle of Attack (°)", min_value=-5.0, max_value=20.0, value=5.0, step=0.5)
+        velocity = st.slider("Velocity (m/s)", min_value=5.0, max_value=100.0, value=30.0, step=1.0)
 
     with col2:
-        st.markdown("**🌡️ Air Density**")
-        rho = st.number_input("Air Density (kg/m³)", min_value=0.1, max_value=2.0, 
-                              value=1.225, step=0.001, format="%.3f",
-                              help="Sea level standard: 1.225 kg/m³")
-        
-        st.markdown("**📏 Chord Length**")
-        chord = st.slider("Chord Length (m)", min_value=0.1, max_value=2.0, value=0.5, step=0.05,
-                         help="Distance from leading to trailing edge")
+        rho = st.number_input("Air Density (kg/m³)", min_value=0.1, max_value=2.0, value=1.225, step=0.001, format="%.3f")
+        chord = st.slider("Chord Length (m)", min_value=0.1, max_value=2.0, value=0.5, step=0.05)
 
     with col3:
-        st.markdown("**📐 Wing Span**")
-        span = st.slider("Wing Span (m)", min_value=0.5, max_value=10.0, value=3.0, step=0.1,
-                        help="Tip-to-tip wing length")
+        span = st.slider("Wing Span (m)", min_value=0.5, max_value=10.0, value=3.0, step=0.1)
 
-    # Wing area (display only, forces use per-meter like React)
     S = chord * span
 
     st.markdown("---")
 
-    # --- Compute coefficients and forces ---
     max_camber = foil["maxCamber"]
     max_thickness = foil["maxThickness"]
     stall_angle = foil["stallAngle"]
@@ -550,103 +544,39 @@ def page_visualizer():
     CL, CD, is_stalled = compute_coefficients(aoa, max_camber, max_thickness, stall_angle, velocity, rho, chord)
     L, D = compute_forces(rho, velocity, chord, CL, CD)
     
-    # L/D ratio
     LD_ratio = CL / CD if CD > 0 else 0
 
-    # --- Stall Warning ---
     if is_stalled:
-        st.markdown("""
-        <div class="stall-warning">
-            <h3 style="margin: 0;">⚠️ STALL WARNING ⚠️</h3>
-            <p style="margin: 0.5rem 0 0 0;">Angle of attack exceeds stall angle! Lift is reduced and drag is increased.</p>
+        st.markdown(f"""
+        <div class="stall-warning-modern">
+            <span class="icon">⚠️</span>
+            <div>
+                <div class="text">STALL — AoA exceeds effective stall angle</div>
+                <div class="sub">Lift reduced, drag increased significantly</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- Coefficients Display ---
-    st.subheader("📊 Aerodynamic Coefficients")
+    st.markdown('<p class="param-label">Aerodynamic Coefficients</p>', unsafe_allow_html=True)
     
-    coef1, coef2, coef3 = st.columns(3)
-    
-    coef1.markdown(f"""
-    <div style="background: linear-gradient(135deg, #4c51bf 0%, #6b46c1 100%); 
-                padding: 1.5rem; border-radius: 12px; text-align: center;
-                box-shadow: 0 4px 15px rgba(76, 81, 191, 0.3);">
-        <p style="color: rgba(255,255,255,0.85); font-size: 0.85rem; margin: 0;">LIFT COEFFICIENT</p>
-        <p style="color: white; font-size: 2rem; font-weight: 700; margin: 0.5rem 0 0 0;">
-            C<sub>L</sub> = {CL:.4f}
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    coef2.markdown(f"""
-    <div style="background: linear-gradient(135deg, #d69e2e 0%, #b7791f 100%); 
-                padding: 1.5rem; border-radius: 12px; text-align: center;
-                box-shadow: 0 4px 15px rgba(214, 158, 46, 0.3);">
-        <p style="color: rgba(255,255,255,0.85); font-size: 0.85rem; margin: 0;">DRAG COEFFICIENT</p>
-        <p style="color: white; font-size: 2rem; font-weight: 700; margin: 0.5rem 0 0 0;">
-            C<sub>D</sub> = {CD:.5f}
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    coef3.markdown(f"""
-    <div style="background: linear-gradient(135deg, #38a169 0%, #2f855a 100%); 
-                padding: 1.5rem; border-radius: 12px; text-align: center;
-                box-shadow: 0 4px 15px rgba(56, 161, 105, 0.3);">
-        <p style="color: rgba(255,255,255,0.85); font-size: 0.85rem; margin: 0;">L/D RATIO</p>
-        <p style="color: white; font-size: 2rem; font-weight: 700; margin: 0.5rem 0 0 0;">
-            {LD_ratio:.1f}
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("CL", f"{CL:.4f}")
+    c2.metric("CD", f"{CD:.5f}")
+    c3.metric("L/D", f"{LD_ratio:.1f}")
+    c4.metric("Reynolds #", f"{(rho * velocity * chord / AIR_VISCOSITY):,.0f}")
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # --- Forces Display ---
-    st.subheader("🎯 Aerodynamic Forces")
+    st.markdown('<p class="param-label" style="margin-top:1rem;">Forces (per meter span)</p>', unsafe_allow_html=True)
     
-    force1, force2, force3 = st.columns(3)
-    
-    force1.markdown(f"""
-    <div style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); 
-                padding: 1.5rem; border-radius: 12px; text-align: center;
-                box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);">
-        <p style="color: rgba(255,255,255,0.85); font-size: 0.85rem; margin: 0;">LIFT FORCE</p>
-        <p style="color: white; font-size: 2rem; font-weight: 700; margin: 0.5rem 0 0 0;">
-            {L:,.2f} N
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    force2.markdown(f"""
-    <div style="background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%); 
-                padding: 1.5rem; border-radius: 12px; text-align: center;
-                box-shadow: 0 4px 15px rgba(237, 137, 54, 0.3);">
-        <p style="color: rgba(255,255,255,0.85); font-size: 0.85rem; margin: 0;">DRAG FORCE</p>
-        <p style="color: white; font-size: 2rem; font-weight: 700; margin: 0.5rem 0 0 0;">
-            {D:,.2f} N
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    force3.markdown(f"""
-    <div style="background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%); 
-                padding: 1.5rem; border-radius: 12px; text-align: center;
-                border: 2px solid #4a5568;">
-        <p style="color: rgba(255,255,255,0.85); font-size: 0.85rem; margin: 0;">WING AREA</p>
-        <p style="color: white; font-size: 2rem; font-weight: 700; margin: 0.5rem 0 0 0;">
-            {S:.2f} m²
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    f1, f2, f3 = st.columns(3)
+    f1.metric("Lift", f"{L:,.1f} N/m")
+    f2.metric("Drag", f"{D:,.1f} N/m")
+    f3.metric("Wing Area", f"{S:.2f} m²")
 
     st.markdown("---")
 
-    # --- Charts ---
-    st.subheader("📈 Aerodynamic Characteristic Curves")
+    st.markdown('<p class="param-label">Characteristic Curves</p>', unsafe_allow_html=True)
     
-    # Generate data for charts
     alpha_range = np.linspace(-5, 20, 100)
     CL_curve = []
     CD_curve = []
@@ -659,38 +589,33 @@ def page_visualizer():
     CL_curve = np.array(CL_curve)
     CD_curve = np.array(CD_curve)
     
-    # Three charts
     chart1, chart2, chart3 = st.columns(3)
     
-    # Chart 1: CL vs Alpha
     with chart1:
-        fig1, ax1 = plt.subplots(figsize=(5, 4))
-        ax1.plot(alpha_range, CL_curve, '-', color='#667eea', linewidth=2, label=f'{selected}')
+        fig1, ax1 = plt.subplots(figsize=(5, 3.5))
+        ax1.plot(alpha_range, CL_curve, '-', color='#6c7bff', linewidth=2, label=selected)
         ax1.axvline(x=stall_angle, color='#e53e3e', linestyle='--', linewidth=1.5, alpha=0.7, label=f'Stall ({stall_angle}°)')
-        ax1.plot(aoa, CL, 'r*', markersize=18, zorder=5, label=f'Operating Point')
-        ax1.axhline(y=0, color='#a0aec0', linestyle='-', linewidth=0.5, alpha=0.5)
-        ax1.axvline(x=0, color='#a0aec0', linestyle='-', linewidth=0.5, alpha=0.5)
+        ax1.plot(aoa, CL, 'o', color='#fc8181', markersize=8, zorder=5, label='Operating Point')
+        ax1.axhline(y=0, color='#444', linestyle='-', linewidth=0.5)
         style_chart(fig1, ax1, "CL vs Angle of Attack", "Angle of Attack α (°)", "CL")
         st.pyplot(fig1)
         plt.close(fig1)
     
-    # Chart 2: CD vs Alpha
     with chart2:
-        fig2, ax2 = plt.subplots(figsize=(5, 4))
-        ax2.plot(alpha_range, CD_curve, '-', color='#ed8936', linewidth=2, label=f'{selected}')
-        ax2.axvline(x=12, color='#805ad5', linestyle='--', linewidth=1.5, alpha=0.7, label='High drag onset (12°)')
-        ax2.plot(aoa, CD, 'r*', markersize=18, zorder=5, label=f'Operating Point')
-        ax2.axvline(x=0, color='#a0aec0', linestyle='-', linewidth=0.5, alpha=0.5)
+        fig2, ax2 = plt.subplots(figsize=(5, 3.5))
+        ax2.plot(alpha_range, CD_curve, '-', color='#ed8a3e', linewidth=2, label=selected)
+        ax2.axvline(x=12, color='#a06cd5', linestyle='--', linewidth=1.5, alpha=0.7, label='Drag onset (12°)')
+        ax2.plot(aoa, CD, 'o', color='#fc8181', markersize=8, zorder=5, label='Operating Point')
+        ax2.axhline(y=0, color='#444', linestyle='-', linewidth=0.5)
         style_chart(fig2, ax2, "CD vs Angle of Attack", "Angle of Attack α (°)", "CD")
         st.pyplot(fig2)
         plt.close(fig2)
     
-    # Chart 3: CL vs CD (Drag Polar)
     with chart3:
-        fig3, ax3 = plt.subplots(figsize=(5, 4))
-        ax3.plot(CD_curve, CL_curve, '-', color='#48bb78', linewidth=2, label=f'{selected}')
-        ax3.plot(CD, CL, 'r*', markersize=18, zorder=5, label=f'Operating Point')
-        ax3.axhline(y=0, color='#a0aec0', linestyle='-', linewidth=0.5, alpha=0.5)
+        fig3, ax3 = plt.subplots(figsize=(5, 3.5))
+        ax3.plot(CD_curve, CL_curve, '-', color='#48bb78', linewidth=2, label=selected)
+        ax3.plot(CD, CL, 'o', color='#fc8181', markersize=8, zorder=5, label='Operating Point')
+        ax3.axhline(y=0, color='#444', linestyle='-', linewidth=0.5)
         style_chart(fig3, ax3, "Drag Polar (CL vs CD)", "Drag Coefficient CD", "Lift Coefficient CL")
         st.pyplot(fig3)
         plt.close(fig3)
@@ -702,95 +627,59 @@ def page_visualizer():
 # ---------------------------------------------------------------------------
 
 def page_custom_airfoil():
-    st.header("📝 Custom Airfoil Upload")
+    st.header("Custom Airfoil Upload")
     
-    st.markdown("""
-    <div class="dark-info-box">
-        <p>🔬 <b>Add any airfoil</b> by pasting its coordinate data. The app will automatically 
-        extract geometry properties (camber, thickness) and estimate aerodynamic behavior.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="info-card"><p>Paste airfoil coordinate data to extract geometry and use it in the simulator.</p></div>', unsafe_allow_html=True)
 
-    # Initialize session storage
     if "custom_airfoils" not in st.session_state:
         st.session_state["custom_airfoils"] = {}
 
-    # Two columns layout
     col_input, col_preview = st.columns([1, 1])
     
     with col_input:
-        st.subheader("📋 Input Airfoil Data")
-        
-        name = st.text_input("✏️ Airfoil Name", placeholder="e.g., My Custom Airfoil",
-                            help="Give your airfoil a unique name")
+        name = st.text_input("Airfoil Name", placeholder="e.g., My Custom Airfoil")
         
         st.markdown("""
-        <div style="background: #2d3748; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
-            <p style="margin: 0 0 0.5rem 0; color: #a78bfa; font-weight: 600;">
-                📄 Coordinate Format
-            </p>
-            <p style="margin: 0; color: #cbd5e0; font-size: 0.85rem;">
-                Each line: <code style="color:#faf089;">x-coordinate  y-coordinate</code><br>
-                Supports space, tab, or comma delimiters.<br>
-                Non-numeric header lines are automatically ignored.
+        <div style="background:#1a1c2a;border:1px solid #252836;border-radius:8px;padding:0.75rem 1rem;margin:0.75rem 0;">
+            <p style="margin:0;color:#888;font-size:0.8rem;">
+                Format: <code style="color:#6c7bff;">x y</code> per line. Space, tab, or comma delimiters work.
             </p>
         </div>
         """, unsafe_allow_html=True)
         
         coord_text = st.text_area(
-            "📐 Paste Airfoil Coordinates",
-            height=300,
-            placeholder="""NACA 2412
-1.0000  0.0013
-0.9500  0.0074
-0.9000  0.0126
-0.8000  0.0214
-0.7000  0.0286
-0.6000  0.0347
-0.5000  0.0398
-0.4000  0.0433
-0.3000  0.0435
-0.2000  0.0375
-0.1000  0.0256
-0.0000  0.0000
-0.1000 -0.0121
-0.2000 -0.0180
-...""",
-            help="Paste coordinate data from airfoil databases like UIUC, Airfoil Tools, etc."
+            "Paste Coordinates",
+            height=280,
+            placeholder="1.0000  0.0013\n0.9500  0.0074\n0.9000  0.0126\n..."
         )
         
-        # Parse and preview button
-        if st.button("🔍 Preview & Analyze", type="secondary", use_container_width=True):
+        col_b1, col_b2 = st.columns(2)
+        with col_b1:
+            preview_clicked = st.button("Preview", use_container_width=True)
+        with col_b2:
+            save_clicked = st.button("Save Airfoil", type="primary", use_container_width=True)
+        
+        if preview_clicked:
             if coord_text.strip():
                 x, y, err = parse_airfoil_coordinates(coord_text)
                 if err:
-                    st.error(f"❌ {err}")
+                    st.error(err)
                 else:
                     st.session_state["preview_coords"] = (x, y)
                     st.session_state["preview_name"] = name.strip() if name.strip() else "Unnamed"
-                    st.success(f"✅ Parsed {len(x)} coordinate points successfully!")
+                    st.success(f"Parsed {len(x)} points")
             else:
-                st.warning("⚠️ Please paste coordinate data first.")
+                st.warning("Paste coordinate data first.")
         
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        # Save button
-        if st.button("💾 Save Airfoil", type="primary", use_container_width=True):
-            errors = []
-            
+        if save_clicked:
             if not name or not name.strip():
-                errors.append("Airfoil name is required.")
-            
-            if not coord_text.strip():
-                errors.append("Coordinate data is required.")
-            
-            if errors:
-                for e in errors:
-                    st.error(f"❌ {e}")
+                st.error("Name is required.")
+            elif not coord_text.strip():
+                st.error("Coordinate data is required.")
             else:
                 x, y, err = parse_airfoil_coordinates(coord_text)
                 if err:
-                    st.error(f"❌ {err}")
+                    st.error(err)
                 else:
                     try:
                         geometry = extract_airfoil_geometry(x, y)
@@ -801,76 +690,59 @@ def page_custom_airfoil():
                             "coordinates": {"x": x.tolist(), "y": y.tolist()},
                             "description": "Custom uploaded airfoil"
                         }
-                        st.success(f"✅ **{name.strip()}** saved successfully!")
-                        st.balloons()
+                        st.success(f"Saved \"{name.strip()}\"!")
                         if "preview_coords" in st.session_state:
                             del st.session_state["preview_coords"]
                     except Exception as ex:
-                        st.error(f"❌ Error analyzing airfoil: {str(ex)}")
+                        st.error(f"Analysis error: {ex}")
     
     with col_preview:
-        st.subheader("👁️ Preview")
-        
         if "preview_coords" in st.session_state:
             x, y = st.session_state["preview_coords"]
             preview_name = st.session_state.get("preview_name", "Preview")
             
-            # Plot airfoil shape
-            fig, ax = plt.subplots(figsize=(8, 4))
-            ax.plot(x, y, 'b-', linewidth=1.5, marker='.', markersize=3)
-            ax.fill(x, y, alpha=0.3, color='#667eea')
+            fig, ax = plt.subplots(figsize=(8, 3.5))
+            ax.plot(x, y, '-', color='#6c7bff', linewidth=1.5, marker='.', markersize=2)
+            ax.fill(x, y, alpha=0.2, color='#6c7bff')
             ax.set_aspect('equal')
-            ax.set_xlabel('x/c', fontsize=10)
-            ax.set_ylabel('y/c', fontsize=10)
-            ax.set_title(f'Airfoil Shape: {preview_name}', fontsize=12, fontweight='600')
-            ax.grid(True, linestyle='--', alpha=0.4)
-            ax.axhline(y=0, color='gray', linestyle='-', linewidth=0.5)
+            ax.set_xlabel('x/c', fontsize=9, color='#888')
+            ax.set_ylabel('y/c', fontsize=9, color='#888')
+            ax.set_title(preview_name, fontsize=11, fontweight='600', color='#ccc')
+            ax.grid(True, linestyle='--', alpha=0.15, color='#555')
+            ax.axhline(y=0, color='#444', linestyle='-', linewidth=0.5)
+            ax.set_facecolor('#11131f')
+            fig.patch.set_facecolor('#0f1117')
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['left'].set_color('#2d3148')
+            ax.spines['bottom'].set_color('#2d3148')
+            ax.tick_params(colors='#888', labelsize=8)
             fig.tight_layout()
             st.pyplot(fig)
             plt.close(fig)
             
-            # Show extracted properties
             try:
                 geometry = extract_airfoil_geometry(x, y)
-                
-                st.markdown("""
-                <div style="background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%); 
-                            padding: 1rem; border-radius: 12px; margin-top: 1rem;
-                            border-left: 4px solid #48bb78;">
-                    <p style="margin: 0 0 0.5rem 0; color: #48bb78; font-weight: 600;">
-                        📊 Extracted Geometry
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                p1, p2 = st.columns(2)
-                p1.metric("Max Thickness", f"{geometry['maxThickness']*100:.1f}%")
-                p2.metric("Max Camber", f"{geometry['maxCamber']*100:.2f}%")
-                
-                p3, p4 = st.columns(2)
-                p3.metric("Est. Stall Angle", f"{geometry['stallAngle']:.1f}°")
+                gp1, gp2, gp3, gp4 = st.columns(4)
+                gp1.metric("Max Thickness", f"{geometry['maxThickness']*100:.1f}%")
+                gp2.metric("Max Camber", f"{geometry['maxCamber']*100:.2f}%")
+                gp3.metric("Est. Stall", f"{geometry['stallAngle']:.1f}°")
                 zero_lift = -geometry['maxCamber'] * 80
-                p4.metric("Zero-Lift α", f"{zero_lift:.2f}°")
-                
+                gp4.metric("Zero-Lift α", f"{zero_lift:.2f}°")
             except Exception as ex:
-                st.warning(f"Could not extract geometry: {str(ex)}")
+                st.warning(f"Geometry extraction failed: {ex}")
         else:
             st.markdown("""
-            <div style="background: #2d3748; padding: 3rem 1.5rem; border-radius: 12px; 
-                        text-align: center; border: 2px dashed #4a5568;">
-                <p style="color: #667eea; font-size: 3rem; margin: 0;">📊</p>
-                <p style="color: #a0aec0; margin: 1rem 0 0 0;">
-                    Paste coordinates and click <b>Preview & Analyze</b><br>
-                    to see the airfoil shape and properties.
-                </p>
+            <div style="background:#1a1c2a;border:1px dashed #2d3148;border-radius:10px;padding:3rem 1.5rem;text-align:center;">
+                <p style="color:#555;font-size:2.5rem;margin:0;">📐</p>
+                <p style="color:#666;margin:0.75rem 0 0 0;">Click <b style="color:#6c7bff;">Preview</b> to see the airfoil shape</p>
             </div>
             """, unsafe_allow_html=True)
 
     st.markdown("---")
 
-    # Show existing custom airfoils
     if st.session_state.get("custom_airfoils"):
-        st.subheader("📚 Your Custom Airfoils")
+        st.markdown('<p class="param-label">Saved Custom Airfoils</p>', unsafe_allow_html=True)
         
         airfoil_items = list(st.session_state["custom_airfoils"].items())
         cols = st.columns(min(3, len(airfoil_items)))
@@ -878,128 +750,244 @@ def page_custom_airfoil():
         for idx, (foil_name, data) in enumerate(airfoil_items):
             with cols[idx % 3]:
                 st.markdown(f"""
-                <div style="background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%); 
-                            padding: 1rem; border-radius: 12px; margin-bottom: 1rem;
-                            border: 1px solid #4a5568;">
-                    <h4 style="margin: 0 0 0.5rem 0; color: #a78bfa;">🔹 {foil_name}</h4>
-                    <p style="color: #cbd5e0; font-size: 0.85rem; margin: 0;">
-                        Thickness: {data['maxThickness']*100:.1f}% | 
-                        Camber: {data['maxCamber']*100:.2f}%
+                <div style="background:#1a1c2a;border:1px solid #252836;border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.75rem;">
+                    <p style="margin:0 0 0.25rem 0;color:#6c7bff;font-weight:600;">{foil_name}</p>
+                    <p style="margin:0;color:#666;font-size:0.8rem;">
+                        Thickness: {data['maxThickness']*100:.1f}% &nbsp;|&nbsp; Camber: {data['maxCamber']*100:.2f}%
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                if st.button(f"🗑️ Delete", key=f"del_{foil_name}"):
+                if st.button("Delete", key=f"del_{foil_name}"):
                     del st.session_state["custom_airfoils"][foil_name]
                     st.rerun()
     else:
-        st.markdown("""
-        <div class="dark-info-box">
-            <p>💡 No custom airfoils yet. Add one above to get started!</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="info-card"><p>No custom airfoils saved yet.</p></div>', unsafe_allow_html=True)
 
  
 # Page: Theory
 # ---------------------------------------------------------------------------
 
 def page_theory():
-    st.header("📖 Theory")
+    st.header("Theory")
+    
+    st.markdown('<div class="info-card"><p>Fundamental aerodynamics concepts for understanding airfoil behavior.</p></div>', unsafe_allow_html=True)
+    
+    topics = [
+        ("Airfoil", "The cross-sectional shape of a wing designed to produce lift. The curved upper surface and flatter lower surface create a pressure difference that generates upward force."),
+        ("Lift", "The upward force that keeps an aircraft in the air. Air moves faster over the curved top surface, creating lower pressure above and higher pressure below (Bernoulli's principle)."),
+        ("Drag", "The backward force opposing motion through air. Drag increases with velocity and angle of attack. Minimizing drag is key to efficient flight."),
+        ("Angle of Attack (α)", "The angle between the wing's chord line and the oncoming airflow. Increasing α increases lift up to the stall point, beyond which lift drops sharply."),
+        ("Stall", "Flow separation from the upper wing surface at excessive angle of attack. Lift drops suddenly and drag increases dramatically. A critical safety concept in aviation."),
+        ("Lift Coefficient (CL)", "A dimensionless number representing lifting efficiency. Higher CL means more lift per unit speed and area. Depends on airfoil shape and angle of attack."),
+        ("Drag Coefficient (CD)", "A dimensionless number measuring aerodynamic resistance. Lower CD means less drag. Increases at high angles of attack and after stall."),
+        ("L/D Ratio", "Lift-to-drag ratio measures aerodynamic efficiency. Gliders achieve 20-60, commercial aircraft 15-20, fighters 5-10. Higher is better for range and fuel economy."),
+        ("Chord Line", "The straight line from leading edge to trailing edge. Chord length is the reference dimension for all airfoil measurements and calculations."),
+        ("Pressure Difference", "The fundamental mechanism of lift — low pressure above the wing and high pressure below creates a net upward force described by Bernoulli's equation."),
+        ("Flow Separation", "When airflow detaches from the wing surface, creating turbulence in the wake. This is the physical cause of stall, reducing lift and increasing drag."),
+    ]
+    
+    for title, desc in topics:
+        st.markdown(f"""
+        <div class="theory-card">
+            <h4>{title}</h4>
+            <p>{desc}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------------------------
+# Page: Compare
+# ---------------------------------------------------------------------------
+
+def page_compare():
+    st.header("Compare Airfoils")
+    st.markdown('<div class="info-card"><p>Compare aerodynamic performance of two airfoils side by side.</p></div>', unsafe_allow_html=True)
+    
+    airfoils = get_all_airfoils()
+    names = list(airfoils.keys())
+    
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.markdown('<p class="param-label">Airfoil A</p>', unsafe_allow_html=True)
+        sel_a = st.selectbox("Airfoil A", names, key="comp_a", label_visibility="collapsed")
+    with col_b:
+        st.markdown('<p class="param-label">Airfoil B</p>', unsafe_allow_html=True)
+        sel_b = st.selectbox("Airfoil B", names, key="comp_b", index=min(1, len(names)-1), label_visibility="collapsed")
+    
+    st.markdown("---")
+    col_p1, col_p2, col_p3 = st.columns(3)
+    with col_p1:
+        comp_aoa = st.slider("AoA (°)", -5.0, 20.0, 5.0, 0.5)
+    with col_p2:
+        comp_vel = st.slider("Velocity (m/s)", 5.0, 100.0, 30.0, 1.0)
+    with col_p3:
+        comp_chord = st.slider("Chord (m)", 0.1, 2.0, 0.5, 0.05)
+    
+    foil_a = airfoils[sel_a]
+    foil_b = airfoils[sel_b]
+    
+    CL_a, CD_a, stall_a = compute_coefficients(comp_aoa, foil_a["maxCamber"], foil_a["maxThickness"], foil_a["stallAngle"], comp_vel, 1.225, comp_chord)
+    CL_b, CD_b, stall_b = compute_coefficients(comp_aoa, foil_b["maxCamber"], foil_b["maxThickness"], foil_b["stallAngle"], comp_vel, 1.225, comp_chord)
+    LD_a = CL_a / CD_a if CD_a > 0 else 0
+    LD_b = CL_b / CD_b if CD_b > 0 else 0
+    
+    st.markdown("---")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric(f"CL - {sel_a}", f"{CL_a:.4f}", f"{CL_b - CL_a:+.4f}")
+    c2.metric(f"CD - {sel_a}", f"{CD_a:.5f}", f"{CD_b - CD_a:+.5f}")
+    c3.metric(f"L/D - {sel_a}", f"{LD_a:.1f}", f"{LD_b - LD_a:+.1f}")
+    c4.metric("Stall", f"{'⚠️' if stall_a else '✓'}", f"{'⚠️' if stall_b else '✓'}")
+    
+    st.markdown("---")
+    comp_range = np.linspace(-5, 20, 100)
+    CL_a_curve = np.array([compute_coefficients(a, foil_a["maxCamber"], foil_a["maxThickness"], foil_a["stallAngle"], comp_vel, 1.225, comp_chord)[0] for a in comp_range])
+    CL_b_curve = np.array([compute_coefficients(a, foil_b["maxCamber"], foil_b["maxThickness"], foil_b["stallAngle"], comp_vel, 1.225, comp_chord)[0] for a in comp_range])
+    
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(comp_range, CL_a_curve, '-', color='#6c7bff', linewidth=2, label=sel_a)
+    ax.plot(comp_range, CL_b_curve, '-', color='#ed8a3e', linewidth=2, label=sel_b)
+    ax.axhline(y=0, color='#444', linestyle='-', linewidth=0.5)
+    ax.set_facecolor('#11131f')
+    fig.patch.set_facecolor('#0f1117')
+    ax.grid(True, linestyle='--', alpha=0.15, color='#555')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_color('#2d3148')
+    ax.spines['bottom'].set_color('#2d3148')
+    ax.tick_params(colors='#888', labelsize=9)
+    ax.set_xlabel("Angle of Attack (°)", color='#888', fontsize=10)
+    ax.set_ylabel("CL", color='#888', fontsize=10)
+    ax.set_title("CL Comparison", color='#ccc', fontsize=11, fontweight='600')
+    ax.legend(fontsize=9, labelcolor='#aaa')
+    fig.tight_layout()
+    st.pyplot(fig)
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Page: Quiz
+# ---------------------------------------------------------------------------
+
+QUIZ_DATA = [
+    {"q": "What is the primary force that opposes an aircraft's motion through air?", "o": ["Lift", "Drag", "Thrust", "Weight"], "a": 1},
+    {"q": "Stall occurs when:", "o": ["Engine fails", "Angle of attack exceeds critical value", "Speed is too high", "Wing breaks"], "a": 1},
+    {"q": "The lift coefficient CL typically increases with:", "o": ["Decreasing airspeed", "Increasing angle of attack", "Decreasing wing area", "Increasing drag"], "a": 1},
+    {"q": "A cambered airfoil produces:", "o": ["Zero lift at 0° AoA", "Some lift even at 0° AoA", "More drag than a symmetric one", "No stall"], "a": 1},
+    {"q": "What does L/D ratio measure?", "o": ["Speed", "Weight", "Aerodynamic efficiency", "Engine power"], "a": 2},
+    {"q": "Reynolds number represents the ratio of:", "o": ["Inertial to viscous forces", "Lift to drag", "Pressure to density", "Speed to chord"], "a": 0},
+    {"q": "The zero-lift angle for a symmetric airfoil is:", "o": ["-5°", "0°", "5°", "Depends on speed"], "a": 1},
+    {"q": "At low Reynolds numbers, an airfoil typically:", "o": ["Performs better", "Has lower CL and higher CD", "Has no stall", "Generates more lift"], "a": 1},
+]
+
+def page_quiz():
+    st.header("Quiz")
+    st.markdown('<div class="info-card"><p>Test your knowledge of aerodynamics fundamentals.</p></div>', unsafe_allow_html=True)
+    
+    if "quiz_answers" not in st.session_state:
+        st.session_state.quiz_answers = {}
+    if "quiz_submitted" not in st.session_state:
+        st.session_state.quiz_submitted = False
+    
+    for i, item in enumerate(QUIZ_DATA):
+        st.markdown(f"**{i+1}. {item['q']}**")
+        ans = st.radio("", item["o"], key=f"quiz_{i}", index=None, label_visibility="collapsed")
+        if ans is not None:
+            st.session_state.quiz_answers[i] = item["o"].index(ans)
+    
+    if st.button("Submit Answers", type="primary", use_container_width=False):
+        st.session_state.quiz_submitted = True
+        correct = 0
+        for i, item in enumerate(QUIZ_DATA):
+            if st.session_state.quiz_answers.get(i) == item["a"]:
+                correct += 1
+        pct = correct / len(QUIZ_DATA) * 100
+        st.markdown(f"<div style='background:#1a1c2a;border:1px solid #252836;border-radius:10px;padding:1.25rem;text-align:center;margin-top:1rem;'><p style='color:#6c7bff;font-size:2rem;font-weight:700;margin:0;'>{correct}/{len(QUIZ_DATA)}</p><p style='color:#888;margin:0;'>{pct:.0f}% — {'Excellent!' if pct >= 80 else 'Good job!' if pct >= 60 else 'Keep studying!'}</p></div>", unsafe_allow_html=True)
+
+    if st.session_state.quiz_submitted:
+        for i, item in enumerate(QUIZ_DATA):
+            user_ans = st.session_state.quiz_answers.get(i)
+            is_correct = user_ans == item["a"]
+            icon = "✅" if is_correct else "❌"
+            correct_text = f" → Correct: {item['o'][item['a']]}" if not is_correct else ""
+            st.markdown(f"<p style='color:#ccc;font-size:0.85rem;margin:0.2rem 0;'>{icon} {i+1}. {item['q']}{correct_text}</p>", unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------------------------
+# Page: About
+# ---------------------------------------------------------------------------
+
+def page_about():
+    st.header("About")
     
     st.markdown("""
-    <div class="dark-info-box">
-        <p>📚 Learn the fundamentals of aerodynamics with these simple, student-friendly explanations.</p>
+    <div style="background:#1a1c2a;border:1px solid #252836;border-radius:10px;padding:1.5rem;margin-bottom:1rem;">
+        <h4 style="color:#6c7bff;margin:0 0 0.5rem 0;">Interactive Airfoil Lift & Drag Visualizer</h4>
+        <p style="color:#9ca3af;margin:0;font-size:0.9rem;line-height:1.7;">
+            An interdisciplinary educational tool combining Aeronautical Engineering and Computer Science 
+            to help students understand how lift and drag are produced on different airfoil shapes through 
+            interactive visualization.
+        </p>
+    </div>
+    <div style="background:#1a1c2a;border:1px solid #252836;border-radius:10px;padding:1.5rem;margin-bottom:1rem;">
+        <h4 style="color:#6c7bff;margin:0 0 0.5rem 0;">How It Works</h4>
+        <p style="color:#9ca3af;margin:0;font-size:0.9rem;line-height:1.7;">
+            The simulator uses simplified aerodynamic models based on thin airfoil theory. 
+            Lift coefficient is calculated from angle of attack with Reynolds number corrections. 
+            Drag is modeled as a combination of skin friction (Prandtl-Schlichting), induced drag, 
+            and thickness effects. Stall is simulated with angle reduction at low Reynolds numbers.
+        </p>
+    </div>
+    <div style="background:#1a1c2a;border:1px solid #252836;border-radius:10px;padding:1.5rem;margin-bottom:1rem;">
+        <h4 style="color:#6c7bff;margin:0 0 0.5rem 0;">Limitations</h4>
+        <p style="color:#9ca3af;margin:0;font-size:0.9rem;line-height:1.7;">
+            This is an educational visualization, not a CFD tool. Results are not suitable for 
+            real aircraft design. The aerodynamic models use empirical curve-fits and simplified 
+            equations — for accurate analysis, use XFOIL, panel methods, or full CFD.
+        </p>
+    </div>
+    <div style="background:#1a1c2a;border:1px solid #252836;border-radius:10px;padding:1.5rem;">
+        <h4 style="color:#6c7bff;margin:0 0 0.5rem 0;">Tech Stack</h4>
+        <p style="color:#9ca3af;margin:0;font-size:0.9rem;line-height:1.7;">
+            Python • Streamlit • NumPy • Matplotlib<br>
+            Aerodynamic models ported from the React/Node.js version.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------------------------
+# Page: Home
+# ---------------------------------------------------------------------------
+
+def page_home():
+    st.markdown("""
+    <div style="text-align:center;padding:1.5rem 0;">
+        <div style="font-size:3rem;">✈️</div>
+        <h2 style="color:#f0f0f0;margin:0.5rem 0 0.25rem 0;">Airfoil Lift & Drag Visualizer</h2>
+        <p style="color:#888;margin:0;font-size:0.95rem;">Explore aerodynamics through interactive simulation</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Theory cards
-    st.markdown("""
-    <div class="theory-card">
-        <h4>✈️ Airfoil</h4>
-        <p>An airfoil is the cross-sectional shape of a wing. It is designed to produce lift when air flows over it. 
-        The curved top and flatter bottom create a pressure difference that lifts the aircraft.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("---")
     
-    st.markdown("""
-    <div class="theory-card">
-        <h4>⬆️ Lift</h4>
-        <p>Lift is the upward force that keeps an aircraft in the air. It is created when air moves faster over 
-        the top of the wing than the bottom, causing lower pressure above and higher pressure below.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    features = [
+        ("Simulator", "Adjust angle of attack, velocity, and airfoil shape to see real-time CL, CD, and force calculations with interactive charts."),
+        ("Custom Airfoil", "Upload your own airfoil coordinates to analyze geometry — thickness, camber, stall angle, and zero-lift angle."),
+        ("Compare", "Compare two airfoils side-by-side with CL curves and performance metrics."),
+        ("Learn", "Study fundamental aerodynamics concepts — lift, drag, stall, pressure difference, and more."),
+        ("Quiz", "Test your knowledge with multiple-choice questions on aerodynamics."),
+    ]
     
-    st.markdown("""
-    <div class="theory-card">
-        <h4>➡️ Drag</h4>
-        <p>Drag is the force that opposes motion through the air. It acts backward, slowing the aircraft down. 
-        Drag increases with speed and angle of attack.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="theory-card">
-        <h4>📐 Angle of Attack (α)</h4>
-        <p>The angle of attack is the angle between the wing's chord line and the oncoming airflow. 
-        Increasing this angle increases lift — but only up to a point. Too much angle causes stall.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="theory-card">
-        <h4>⚠️ Stall</h4>
-        <p>Stall occurs when the angle of attack becomes too high. The airflow separates from the wing surface, 
-        lift drops suddenly, and drag increases. This is dangerous and must be avoided.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="theory-card">
-        <h4>📊 Lift Coefficient (CL)</h4>
-        <p>The lift coefficient is a number that represents how effectively a wing produces lift. 
-        Higher CL means more lift for the same speed and wing size. It depends on shape and angle of attack.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="theory-card">
-        <h4>📉 Drag Coefficient (CD)</h4>
-        <p>The drag coefficient measures how much drag a wing creates. Lower CD means less resistance 
-        and better efficiency. It increases at high angles of attack.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="theory-card">
-        <h4>⚖️ Lift-to-Drag Ratio (L/D)</h4>
-        <p>This ratio tells you how efficient a wing is. A higher L/D ratio means the wing produces 
-        more lift for less drag. Gliders have very high L/D ratios (20-60), while fighters are lower (5-10).</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="theory-card">
-        <h4>📏 Chord Line</h4>
-        <p>The chord line is a straight line from the leading edge (front) to the trailing edge (back) of the wing. 
-        The chord length is the distance of this line.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="theory-card">
-        <h4>🔄 Pressure Difference</h4>
-        <p>Air moving over a curved wing surface speeds up and creates low pressure on top. 
-        The higher pressure below pushes the wing up. This pressure difference is what creates lift.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="theory-card">
-        <h4>💨 Flow Separation</h4>
-        <p>Flow separation happens when air can no longer follow the wing's curved surface and breaks away. 
-        This creates turbulence, reduces lift, and increases drag. It's the main cause of stall.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    cols = st.columns(3)
+    for i, (title, desc) in enumerate(features):
+        with cols[i % 3]:
+            st.markdown(f"""
+            <div style="background:#1a1c2a;border:1px solid #252836;border-radius:10px;padding:1.25rem;margin-bottom:1rem;height:180px;">
+                <h4 style="color:#6c7bff;margin:0 0 0.5rem 0;">{title}</h4>
+                <p style="color:#9ca3af;margin:0;font-size:0.85rem;line-height:1.6;">{desc}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1017,65 +1005,61 @@ def main():
     # Inject custom CSS
     inject_custom_css()
 
-    # Sidebar
     st.sidebar.markdown("""
-    <div style="text-align: center; padding: 1rem 0;">
-        <h1 style="font-size: 2.5rem; margin: 0;">✈️</h1>
-        <h2 style="color: #e2e8f0; font-size: 1.1rem; margin: 0.5rem 0;">
-            Airfoil Analyzer
-        </h2>
+    <div style="text-align:center;padding:1.5rem 0 0.5rem 0;">
+        <div style="font-size:2rem;margin:0;">✈️</div>
+        <div style="color:#e0e0e0;font-weight:700;font-size:1rem;margin:0.25rem 0 0 0;">Airfoil Visualizer</div>
     </div>
     """, unsafe_allow_html=True)
     
     st.sidebar.markdown("---")
     
     page = st.sidebar.radio(
-        "📍 Navigation",
-        ["🔬 Lift & Drag Simulator", "📝 Custom Airfoil Upload", "📖 Theory"],
+        "Navigation",
+        ["Home", "Simulator", "Custom Airfoil", "Compare", "Learn", "Quiz", "About"],
         index=0,
         label_visibility="collapsed"
     )
 
     st.sidebar.markdown("---")
     
-    # Airfoil count indicator
     num_predefined = len(get_predefined_airfoils())
     num_custom = len(st.session_state.get("custom_airfoils", {}))
     
     st.sidebar.markdown(f"""
-    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px;">
-        <p style="color: #a0aec0; font-size: 0.8rem; margin: 0 0 0.5rem 0;">AIRFOILS AVAILABLE</p>
-        <p style="color: #e2e8f0; font-size: 0.95rem; margin: 0;">
-            📦 Predefined: <b>{num_predefined}</b><br>
-            ✨ Custom: <b>{num_custom}</b>
+    <div style="background:#1e2030;padding:0.75rem 1rem;border-radius:8px;border:1px solid #252836;">
+        <p style="color:#888;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 0.35rem 0;">Airfoils</p>
+        <p style="color:#b0b3c0;font-size:0.85rem;margin:0;">
+            Predefined: <b style="color:#6c7bff;">{num_predefined}</b> &nbsp;|&nbsp; Custom: <b style="color:#6c7bff;">{num_custom}</b>
         </p>
     </div>
     """, unsafe_allow_html=True)
     
     st.sidebar.markdown("---")
     
-    st.sidebar.caption(
-        "Built with Streamlit, NumPy & Matplotlib.\n\n"
-        "Educational aerodynamics simulator."
-    )
+    st.sidebar.caption("Educational aerodynamics simulator • Streamlit")
 
-    # Main title
-    st.markdown("""
-    <h1 style="text-align: center; font-size: 2.2rem; margin-bottom: 0.5rem;">
-        ✈️ Interactive Airfoil Lift & Drag Visualizer
-    </h1>
-    <p style="text-align: center; color: #718096; margin-bottom: 2rem;">
-        Explore aerodynamic principles with interactive simulations
-    </p>
+    st.markdown(f"""
+    <div style="text-align:center;margin-bottom:1.5rem;">
+        <h1 style="font-size:1.6rem;margin:0;color:#f0f0f0;">Airfoil Lift & Drag Visualizer</h1>
+        <p style="color:#666;font-size:0.85rem;margin:0.35rem 0 0 0;">Interactive aerodynamic simulation for engineering education</p>
+    </div>
     """, unsafe_allow_html=True)
 
-    # Page routing
-    if "Lift & Drag Simulator" in page:
+    if page == "Home":
+        page_home()
+    elif page == "Simulator":
         page_visualizer()
-    elif "Custom Airfoil Upload" in page:
+    elif page == "Custom Airfoil":
         page_custom_airfoil()
-    else:
+    elif page == "Compare":
+        page_compare()
+    elif page == "Learn":
         page_theory()
+    elif page == "Quiz":
+        page_quiz()
+    elif page == "About":
+        page_about()
 
 
 if __name__ == "__main__":
