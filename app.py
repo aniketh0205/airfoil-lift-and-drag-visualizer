@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-from matplotlib.patches import FancyBboxPatch
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
 st.set_page_config(page_title="Airfoil Lift & Drag Visualizer", page_icon="✈️", layout="wide", initial_sidebar_state="expanded")
 
@@ -315,15 +315,21 @@ def draw_airfoil(coords, aoa=0, stall=False, width=7, height=3.5, show_forces=Tr
     ax.text(0.5, bot_y, "High Pressure" if not neg_lift else "Low Pressure",
             ha="center", fontsize=10, color="#f87171", fontweight="bold")
 
-    # Lift/Drag arrows at rotated quarter-chord
+    # Lift/Drag arrows at rotated quarter-chord (FancyArrowPatch for reliable arrowheads)
     if show_forces and CL is not None:
         rqx, rqy = rot(0.25, 0)
-        aw = 0.025; ah = 0.035; al = 0.4
+        al = 0.4
         ld = 1 if CL >= 0 else -1
-        ax.arrow(rqx, rqy, 0, ld * al, head_width=aw, head_length=ah, fc="#22c55e", ec="#22c55e", lw=3.5, length_includes_head=True, zorder=10)
+        lift_arrow = FancyArrowPatch((rqx, rqy), (rqx, rqy + ld * al),
+                                      arrowstyle="-|>", mutation_scale=40,
+                                      facecolor="#22c55e", edgecolor="none", linewidth=0, zorder=10)
+        ax.add_patch(lift_arrow)
         ax.text(rqx + 0.04, rqy + ld * al * 0.5, "Lift", fontsize=11, color="#22c55e", fontweight="bold", va="center", zorder=10)
-        ax.arrow(rqx, rqy, 0.7 * al, 0, head_width=aw, head_length=ah, fc="#f97316", ec="#f97316", lw=3.5, length_includes_head=True, zorder=10)
-        ax.text(rqx + 0.35 * al, rqy - 0.05, "Drag", fontsize=11, color="#f97316", fontweight="bold", ha="center", zorder=10)
+        drag_arrow = FancyArrowPatch((rqx, rqy), (rqx + 0.75 * al, rqy),
+                                      arrowstyle="-|>", mutation_scale=40,
+                                      facecolor="#f97316", edgecolor="none", linewidth=0, zorder=10)
+        ax.add_patch(drag_arrow)
+        ax.text(rqx + 0.37 * al, rqy - 0.05, "Drag", fontsize=11, color="#f97316", fontweight="bold", ha="center", zorder=10)
 
     # Stall overlay
     if stall:
