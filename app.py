@@ -296,16 +296,18 @@ def draw_airfoil(coords, aoa=0, stall=False, width=7, height=3.5, show_forces=Tr
         qx, qy = 0.25, 0
         rqx = (qx - cx_pt) * cos_a - (qy - cy_pt) * sin_a + cx_pt
         rqy = (qx - cx_pt) * sin_a + (qy - cy_pt) * cos_a + cy_pt
-        arrow_len = 0.3
-        lift_sign = -1 if CL >= 0 else 1
-        # Lift arrow (perpendicular to relative wind = vertical)
-        ax.annotate("", xy=(rqx, rqy + lift_sign * arrow_len), xytext=(rqx, rqy),
-                    arrowprops=dict(arrowstyle="->", color="#22c55e", lw=3, mutation_scale=20))
-        ax.text(rqx + 0.03, rqy + lift_sign * arrow_len * 0.5, "Lift", fontsize=10, color="#22c55e", fontweight="bold", va="center")
-        # Drag arrow (parallel to relative wind = horizontal, rearward)
-        ax.annotate("", xy=(rqx + 0.7 * arrow_len, rqy), xytext=(rqx, rqy),
-                    arrowprops=dict(arrowstyle="->", color="#f97316", lw=3, mutation_scale=20))
-        ax.text(rqx + 0.35 * arrow_len, rqy + 0.03, "Drag", fontsize=10, color="#f97316", fontweight="bold", ha="center")
+        arrow_len = 0.35
+        head_w = 0.025
+        head_l = 0.035
+        # Lift: positive CL = UP (positive y in matplotlib)
+        lift_sign = 1 if CL >= 0 else -1
+        ax.arrow(rqx, rqy, 0, lift_sign * arrow_len,
+                 head_width=head_w, head_length=head_l, fc="#22c55e", ec="#22c55e", lw=3, length_includes_head=True)
+        ax.text(rqx + 0.04, rqy + lift_sign * arrow_len * 0.5, "Lift", fontsize=11, color="#22c55e", fontweight="bold", va="center")
+        # Drag: rearward (positive x)
+        ax.arrow(rqx, rqy, 0.7 * arrow_len, 0,
+                 head_width=head_w, head_length=head_l, fc="#f97316", ec="#f97316", lw=3, length_includes_head=True)
+        ax.text(rqx + 0.35 * arrow_len, rqy - 0.04, "Drag", fontsize=11, color="#f97316", fontweight="bold", ha="center")
 
     # Pressure labels
     _, ymax = max(rpts, key=lambda p: p[1])
