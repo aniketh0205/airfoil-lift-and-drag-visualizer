@@ -311,8 +311,8 @@ def draw_airfoil(coords, aoa=0, stall=False, width=7, height=3.5, show_forces=Tr
     # Pressure labels
     y_top = max(pts[:, 1])
     y_bot = min(pts[:, 1])
-    pt = y_top + 0.06
-    pb = y_bot - 0.06
+    pt = y_top + 0.1
+    pb = y_bot - 0.1
     ax.text(0.5, pt, "Low Pressure" if not neg else "High Pressure",
             ha="center", fontsize=9, color="#60a5fa", fontweight="bold", zorder=5)
     ax.text(0.5, pb, "High Pressure" if not neg else "Low Pressure",
@@ -321,24 +321,24 @@ def draw_airfoil(coords, aoa=0, stall=False, width=7, height=3.5, show_forces=Tr
     # Lift & Drag arrows at rotated quarter-chord
     if show_forces and CL is not None:
         rqx, rqy = rot(0.25, 0)
-        al = 0.35
+        al = 0.4
         ld = 1 if CL >= 0 else -1
 
         # Lift arrow (vertical, points up for +CL)
         _draw_arrow(ax, rqx, rqy, rqx, rqy + ld * al, "#22c55e")
-        ax.text(rqx + 0.045, rqy + ld * al * 0.5, "Lift", fontsize=11,
+        ax.text(rqx + 0.05, rqy + ld * al * 0.55, "Lift", fontsize=12,
                 color="#22c55e", fontweight="bold", va="center", zorder=10)
-        ax.text(rqx + 0.045, rqy + ld * al * 0.5 - 0.04, f"CL = {CL:.4f}", fontsize=7,
+        ax.text(rqx + 0.05, rqy + ld * al * 0.55 - 0.06, f"CL = {CL:.4f}", fontsize=7,
                 color="#22c55e", alpha=0.7, va="center", zorder=10)
 
         # Drag arrow (horizontal, rearward)
         _draw_arrow(ax, rqx, rqy, rqx + 0.75 * al, rqy, "#f97316")
-        ax.text(rqx + 0.35 * al, rqy - 0.07, "Drag", fontsize=11,
+        ax.text(rqx + 0.35 * al, rqy - 0.1, "Drag", fontsize=12,
                 color="#f97316", fontweight="bold", ha="center", zorder=10)
-        ax.text(rqx + 0.35 * al, rqy - 0.11, f"CD = {CD:.4f}", fontsize=7,
+        ax.text(rqx + 0.35 * al, rqy - 0.16, f"CD = {CD:.4f}", fontsize=7,
                 color="#f97316", alpha=0.7, ha="center", zorder=10)
 
-    # Stall badge (clean, rounded)
+    # Stall badge
     if stall:
         ax.add_patch(FancyBboxPatch((0.5 - 0.1, 0.09), 0.2, 0.055,
                                      boxstyle="round,pad=0.015",
@@ -349,9 +349,9 @@ def draw_airfoil(coords, aoa=0, stall=False, width=7, height=3.5, show_forces=Tr
     # Axes limits
     ax.set_aspect("equal")
     ax.set_xlim(-0.12, 1.12)
-    ym = max(abs(y_top) + 0.09, abs(y_bot) + 0.09, 0.28)
+    ym = max(abs(y_top) + 0.12, abs(y_bot) + 0.12, 0.28)
     if show_forces and CL is not None:
-        ym = max(ym, 0.52)
+        ym = max(ym, 0.55)
     ax.set_ylim(-ym, ym)
     ax.axis("off")
     fig.tight_layout()
