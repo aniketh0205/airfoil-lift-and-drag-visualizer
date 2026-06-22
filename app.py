@@ -230,7 +230,9 @@ def style_chart(fig, ax, title, xlabel, ylabel):
     for spine in ax.spines.values():
         spine.set_color("#1e2d48")
     ax.grid(True, linestyle="--", alpha=0.12, color="#3b82f6")
-    ax.legend(fontsize=9, labelcolor="#8899b4", framealpha=0.2, loc="best")
+    handles, labels = ax.get_legend_handles_labels()
+    if handles:
+        ax.legend(fontsize=9, labelcolor="#8899b4", framealpha=0.2, loc="best")
     fig.tight_layout()
 
 # ---------------------------------------------------------------------------
@@ -241,97 +243,118 @@ def draw_airfoil(coords, aoa=0, stall=False, width=7, height=3.5, show_forces=Tr
     if not coords or len(coords) < 3:
         fig, ax = plt.subplots(figsize=(width, height), facecolor="#0b1225")
         ax.set_facecolor("#0f1420")
-        ax.text(0.5, 0.5, "Select an airfoil", ha="center", va="center", color="#5a6f8a", fontsize=12)
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
-        ax.axis("off")
-        fig.tight_layout()
+        ax.text(0.5, 0.5, "Select an airfoil", ha="center", va="center", color="#5a6f8a", fontsize=12, transform=ax.transAxes)
+        ax.set_xlim(0, 1); ax.set_ylim(0, 1); ax.axis("off"); fig.tight_layout()
         return fig
 
     fig, ax = plt.subplots(figsize=(width, height), facecolor="#0b1225")
     ax.set_facecolor("#0f1420")
 
-    pts = np.array(coords)
-    pad_x = 0.08
-    pad_y = 0.18
-
-    # Rotate
-    rad = math.radians(max(-30, min(30, aoa)))
+    aoa = max(-30, min(30, aoa))
+    rad = math.radians(aoa)
     cos_a, sin_a = math.cos(rad), math.sin(rad)
     cx_pt, cy_pt = 0.5, 0
-    rpts = np.array([((x - cx_pt) * cos_a - (y - cy_pt) * sin_a + cx_pt,
-                      (x - cx_pt) * sin_a + (y - cy_pt) * cos_a + cy_pt) for x, y in coords])
+
+    def rot(x, y):
+        dx = (x - cx_pt) * cos_a - (y - cy_pt) * sin_a
+        dy = (x - cx_pt) * sin_a + (y - cy_pt) * cos_a
+        return dx + cx_pt, dy + cy_pt
+
+    pts = np.array([rot(x, y) for x, y in coords])
+    pad_x = 0.08
+    neg_lift = CL is not None and CL < 0
+
+    upper = np.array(sorted([rot(x, y) for x, y in coords if y >= -1e-12], key=lambda p: p[0]))
+    lower = np.array(sorted([rot(x, y) for x, y in coords if y < -1e-12], key=lambda p: p[0]))
 
     # Chord line
-    ax.plot([-pad_x, 1 + pad_x], [0, 0], color="#475569", linestyle="--", linewidth=0.8, alpha=0.4)
+    rchord = np.array([rot(x, 0) for x in [-pad_x, 1 + pad_x]])
+    ax.plot(rchord[:, 0], rchord[:, 1], color="#475569", linestyle="--", linewidth=1, alpha=0.5)
 
-    # Airfoil fill and outline
-    ax.fill(rpts[:, 0], rpts[:, 1], color="#3b82f6", alpha=0.08)
-    ax.plot(rpts[:, 0], rpts[:, 1], color="#60a5fa", linewidth=2)
+    # Upper fill (blue) / lower fill (red or swapped for neg lift)
+    if len(upper) > 1:
+        ax.fill_between(upper[:, 0], 0, upper[:, 1], color="#60a5fa", alpha=0.1, interpolate=False)
+    if len(lower) > 1:
+        c = "#ef4444" if not neg_lift else "#60a5fa"
+        ax.fill_between(lower[:, 0], lower[:, 1], 0, color=c, alpha=0.1, interpolate=False)
+
+    # Outline
+    ax.plot(pts[:, 0], pts[:, 1], color="#93c5fd", linewidth=2.5, zorder=3)
+
+    # Flow particles
+    flow_ys = np.linspace(-0.35, 0.35, 10)
+    for fy in flow_ys:
+        if abs(fy) < 0.025:
+            continue
+        rx, ry = rot(0.05, fy)
+        for offset in [0, 0.5, 1.0]:
+            dx = offset * 0.35
+            color = "#ef4444" if stall else "#60a5fa"
+            ax.plot([rx + dx, rx + dx + 0.12], [ry, ry], color=color, linewidth=1.2, alpha=0.25 + 0.05 * (fy + 0.35))
+
+    # Wind arrow & AoA arc
+    wind_tail = -pad_x - 0.04
+    if aoa != 0:
+        arc_r = 0.22
+        th_end = rad
+        arc_th = np.linspace(0, th_end, 30)
+        ax.plot(wind_tail + arc_r * np.cos(arc_th), arc_r * np.sin(arc_th), color="#60a5fa", linewidth=1.5, alpha=0.5)
+        mid = len(arc_th) // 2
+        ax.annotate("", xy=(wind_tail + arc_r * np.cos(arc_th[mid]), arc_r * np.sin(arc_th[mid])),
+                    xytext=(wind_tail + arc_r * np.cos(arc_th[mid-1]), arc_r * np.sin(arc_th[mid-1])),
+                    arrowprops=dict(arrowstyle="->", color="#60a5fa", lw=1))
+    ax.annotate("", xy=(wind_tail + 0.1, 0), xytext=(wind_tail, 0),
+                arrowprops=dict(arrowstyle="->", color="#60a5fa", lw=2.5))
+    ax.text(wind_tail + 0.02, -0.1, f"Wind  α = {aoa}°", fontsize=10, color="#60a5fa", fontweight="bold")
+
+    # Pressure labels
+    top_y = max(pts[:, 1]) + 0.06
+    bot_y = min(pts[:, 1]) - 0.06
+    ax.text(0.5, top_y, "Low Pressure" if not neg_lift else "High Pressure",
+            ha="center", fontsize=10, color="#60a5fa", fontweight="bold")
+    ax.text(0.5, bot_y, "High Pressure" if not neg_lift else "Low Pressure",
+            ha="center", fontsize=10, color="#f87171", fontweight="bold")
+
+    # Lift/Drag arrows at rotated quarter-chord
+    if show_forces and CL is not None:
+        rqx, rqy = rot(0.25, 0)
+        aw = 0.025; ah = 0.035; al = 0.4
+        ld = 1 if CL >= 0 else -1
+        ax.arrow(rqx, rqy, 0, ld * al, head_width=aw, head_length=ah, fc="#22c55e", ec="#22c55e", lw=3.5, length_includes_head=True, zorder=10)
+        ax.text(rqx + 0.04, rqy + ld * al * 0.5, "Lift", fontsize=11, color="#22c55e", fontweight="bold", va="center", zorder=10)
+        ax.arrow(rqx, rqy, 0.7 * al, 0, head_width=aw, head_length=ah, fc="#f97316", ec="#f97316", lw=3.5, length_includes_head=True, zorder=10)
+        ax.text(rqx + 0.35 * al, rqy - 0.05, "Drag", fontsize=11, color="#f97316", fontweight="bold", ha="center", zorder=10)
 
     # Stall overlay
     if stall:
-        ax.text(0.5, 0.15, "STALL", ha="center", va="center", fontsize=16, fontweight="bold",
-                color="#ef4444", alpha=0.8, transform=ax.transData)
+        ax.add_patch(FancyBboxPatch((0.5 - 0.13, 0.07), 0.26, 0.07, boxstyle="round,pad=0.02",
+                                     facecolor="#ef4444", alpha=0.85, zorder=15, transform=ax.transData))
+        ax.text(0.5, 0.105, "STALL — Flow Separated", ha="center", va="center",
+                fontsize=10, fontweight="bold", color="white", zorder=16)
+        te_x, te_y = rot(1.0, 0)
+        for i in range(4):
+            sx = te_x + 0.02 + i * 0.04
+            ax.plot([sx, sx + 0.02, sx + 0.04], [te_y - 0.02 + i * 0.008, te_y + 0.02 + i * 0.008, te_y - 0.01 + i * 0.008],
+                    color="#ef4444", linewidth=1.5, alpha=0.7, zorder=5)
 
-    # Wind arrow and AoA arc
-    if aoa != 0:
-        arc_r = 0.25
-        aoa_abs = abs(aoa)
-        theta_end = math.radians(aoa_abs) if aoa > 0 else -math.radians(aoa_abs)
-        arc_theta = np.linspace(0, theta_end, 20)
-        ax.plot(-pad_x + arc_r * np.cos(arc_theta), arc_r * np.sin(arc_theta), color="#60a5fa", linewidth=1, alpha=0.6)
-        mid = len(arc_theta) // 2
-        ax.annotate("", xy=(-pad_x + arc_r * np.cos(arc_theta[mid]), arc_r * np.sin(arc_theta[mid])),
-                    xytext=(-pad_x + arc_r * np.cos(arc_theta[mid-1]), arc_r * np.sin(arc_theta[mid-1])),
-                    arrowprops=dict(arrowstyle="->", color="#60a5fa", alpha=0.6, lw=1))
-        ax.text(-pad_x + 0.04, -0.12, f"Wind  |  a = {aoa} deg", fontsize=9, color="#60a5fa", fontweight="bold")
-    else:
-        ax.annotate("", xy=(-pad_x + 0.1, 0), xytext=(-pad_x, 0),
-                    arrowprops=dict(arrowstyle="->", color="#60a5fa", lw=1.5))
-        ax.text(-pad_x + 0.04, -0.12, "Wind", fontsize=9, color="#60a5fa", fontweight="bold")
-
-    # Lift/Drag arrows at quarter-chord (rotated with airfoil)
-    if show_forces and CL is not None:
-        qx, qy = 0.25, 0
-        rqx = (qx - cx_pt) * cos_a - (qy - cy_pt) * sin_a + cx_pt
-        rqy = (qx - cx_pt) * sin_a + (qy - cy_pt) * cos_a + cy_pt
-        arrow_len = 0.35
-        head_w = 0.025
-        head_l = 0.035
-        # Lift: positive CL = UP (positive y in matplotlib)
-        lift_sign = 1 if CL >= 0 else -1
-        ax.arrow(rqx, rqy, 0, lift_sign * arrow_len,
-                 head_width=head_w, head_length=head_l, fc="#22c55e", ec="#22c55e", lw=3, length_includes_head=True)
-        ax.text(rqx + 0.04, rqy + lift_sign * arrow_len * 0.5, "Lift", fontsize=11, color="#22c55e", fontweight="bold", va="center")
-        # Drag: rearward (positive x)
-        ax.arrow(rqx, rqy, 0.7 * arrow_len, 0,
-                 head_width=head_w, head_length=head_l, fc="#f97316", ec="#f97316", lw=3, length_includes_head=True)
-        ax.text(rqx + 0.35 * arrow_len, rqy - 0.04, "Drag", fontsize=11, color="#f97316", fontweight="bold", ha="center")
-
-    # Pressure labels
-    _, ymax = max(rpts, key=lambda p: p[1])
-    _, ymin = min(rpts, key=lambda p: p[1])
-    top_label_y = ymax + 0.05
-    bot_label_y = ymin - 0.05
-    ax.text(0.5, top_label_y, "Low Pressure", ha="center", fontsize=10, color="#60a5fa", fontweight="bold")
-    ax.text(0.5, bot_label_y, "High Pressure", ha="center", fontsize=10, color="#f87171", fontweight="bold")
+    # AoA label
+    ax.text(0.98, -0.22, f"AoA {aoa}°", fontsize=9, color="#5a6f8a", fontfamily="monospace",
+            ha="right", transform=ax.transData)
 
     ax.set_aspect("equal")
-    x_margin = 0.12
-    ax.set_xlim(-x_margin, 1 + x_margin)
-    y_lim = max(abs(top_label_y) + 0.05, abs(bot_label_y) + 0.05, 0.22)
-    ax.set_ylim(-y_lim, y_lim)
+    ax.set_xlim(-0.12, 1.12)
+    ym = max(abs(top_y) + 0.08, abs(bot_y) + 0.08, 0.28)
+    ax.set_ylim(-ym, ym)
     ax.axis("off")
     fig.tight_layout()
     return fig
 
 
 def draw_anatomy():
-    fig, ax = plt.subplots(figsize=(10, 4), facecolor="#0b1225")
+    fig, ax = plt.subplots(figsize=(10, 4.2), facecolor="#0b1225")
     ax.set_facecolor("#0f1420")
     m, p, t = 0.04, 0.4, 0.15
-    xs = np.linspace(0, 1, 80)
+    xs = np.linspace(0, 1, 120)
     yt = 5 * t * (0.2969 * np.sqrt(xs) - 0.1260 * xs - 0.3516 * xs**2 + 0.2843 * xs**3 - 0.1015 * xs**4)
     camber_mask = xs < p
     yc = np.where(camber_mask, (m / p**2) * (2 * p * xs - xs**2), (m / (1 - p)**2) * (1 - 2 * p + 2 * p * xs - xs**2))
@@ -339,19 +362,25 @@ def draw_anatomy():
     theta = np.arctan(dyc)
     yu = yc + yt * np.cos(theta)
     yl = yc - yt * np.cos(theta)
-    ax.fill_between(xs, 0, yu, color="#3b82f6", alpha=0.12)
-    ax.plot(xs, yu, "-", color="#60a5fa", linewidth=2, label="Upper Surface")
-    ax.fill_between(xs, yl, 0, color="#ef4444", alpha=0.12)
-    ax.plot(xs, yl, "-", color="#f87171", linewidth=2, label="Lower Surface")
-    ax.plot(xs, yc, "--", color="#4ade80", linewidth=1.5, label="Camber Line")
-    ax.axhline(0, color="#60a5fa", linestyle="--", linewidth=1, alpha=0.5, label="Chord Line")
+    ax.fill_between(xs, 0, yu, color="#60a5fa", alpha=0.1)
+    ax.plot(xs, yu, "-", color="#60a5fa", linewidth=2.5, label="Upper Surface")
+    ax.fill_between(xs, yl, 0, color="#f87171", alpha=0.1)
+    ax.plot(xs, yl, "-", color="#f87171", linewidth=2.5, label="Lower Surface")
+    ax.plot(xs, yc, "--", color="#4ade80", linewidth=2, label="Camber Line")
+    ax.axhline(0, color="#60a5fa", linestyle="--", linewidth=1.2, alpha=0.4, label="Chord Line")
+    # LE / TE labels
+    ax.annotate("Leading Edge", xy=(0, 0), xytext=(-0.03, -0.15), ha="center", fontsize=9, color="#94a3b8",
+                arrowprops=dict(arrowstyle="->", color="#475569", lw=1))
+    ax.annotate("Trailing Edge", xy=(1, 0), xytext=(1.03, -0.15), ha="center", fontsize=9, color="#94a3b8",
+                arrowprops=dict(arrowstyle="->", color="#475569", lw=1))
+    # Max thickness arrow
     max_t_idx = np.argmax(yt * 2)
     mx = xs[max_t_idx]
     ax.annotate("", xy=(mx, yu[max_t_idx]), xytext=(mx, yl[max_t_idx]),
-                arrowprops=dict(arrowstyle="<->", color="#fbbf24", lw=2))
-    ax.text(mx + 0.03, 0, f"Max Thickness\n{t*100:.0f}%", fontsize=8, color="#fbbf24", fontweight="bold")
-    ax.set_xlim(-0.05, 1.05)
-    margin = 0.22
+                arrowprops=dict(arrowstyle="<->", color="#fbbf24", lw=2.5))
+    ax.text(mx + 0.03, 0, f"Max Thickness  {t*100:.0f}%", fontsize=9, color="#fbbf24", fontweight="bold", va="center")
+    ax.set_xlim(-0.08, 1.08)
+    margin = 0.26
     ax.set_ylim(-margin, margin)
     ax.set_aspect("equal")
     ax.axis("off")
@@ -360,16 +389,16 @@ def draw_anatomy():
 
 
 def draw_naca_preview(camber_pct, pos_pct, thick_pct):
-    coords = generate_naca_coords(camber_pct, pos_pct, thick_pct, 60)
+    coords = generate_naca_coords(camber_pct, pos_pct, thick_pct, 80)
     fig, ax = plt.subplots(figsize=(6, 3), facecolor="#0b1225")
     ax.set_facecolor("#0f1420")
     pts = np.array(coords)
-    ax.plot(pts[:, 0], pts[:, 1], "-", color="#42a5f5", linewidth=2)
-    ax.fill(pts[:, 0], pts[:, 1], color="#42a5f5", alpha=0.1)
-    ax.axhline(0, color="#334155", linestyle="--", linewidth=0.5)
+    ax.fill(pts[:, 0], pts[:, 1], color="#3b82f6", alpha=0.08)
+    ax.plot(pts[:, 0], pts[:, 1], "-", color="#60a5fa", linewidth=2.5)
+    ax.axhline(0, color="#334155", linestyle="--", linewidth=0.8, alpha=0.5)
     ax.set_aspect("equal")
     ax.set_xlim(-0.05, 1.05)
-    margin = max(0.16, abs(max(pts[:, 1])) * 1.3)
+    margin = max(0.18, abs(max(pts[:, 1])) * 1.3)
     ax.set_ylim(-margin, margin)
     ax.axis("off")
     fig.patch.set_facecolor("#0b1225")
@@ -418,52 +447,63 @@ THEORY_TOPICS = [
 
 CSS = """
 <style>
-    .stApp { background: #060a16; }
-    .main .block-container { padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1200px; }
-    h1 { background: linear-gradient(90deg, #3b82f6, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 800 !important; margin-bottom: 0.3rem; }
-    h2 { color: #eef2f8 !important; font-weight: 700 !important; font-size: 1.3rem; }
-    h3 { color: #cbd5e0 !important; font-weight: 600 !important; font-size: 1.1rem; }
-    p, li { color: #8899b4; }
-    .stSidebar { background: #0b1225 !important; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    html, body, [class*="css"] { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    .stApp { background: radial-gradient(ellipse at 50% 0%, #0a1328, #050812); }
+    .main .block-container { padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1100px; }
+    h1 { background: linear-gradient(135deg, #3b82f6, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 800 !important; margin-bottom: 0.2rem; letter-spacing: -0.02em; }
+    h2 { color: #eef2f8 !important; font-weight: 700 !important; font-size: 1.25rem; letter-spacing: -0.01em; }
+    h3 { color: #cbd5e0 !important; font-weight: 600 !important; font-size: 1.05rem; }
+    p, li, .stMarkdown { color: #94a3b8; }
+    .stSidebar { background: linear-gradient(180deg, #0b1326, #080e1e) !important; border-right: 1px solid rgba(59,130,246,0.08); }
     .stSidebar .stMarkdown, .stSidebar label, .stSidebar span, .stSidebar p { color: #cbd5e0; }
-    .stSelectbox > div > div { background: #111b30; border-color: #1e2d48; color: #eef2f8; border-radius: 8px; }
+    .stSelectbox > div > div { background: rgba(17,27,48,0.8); border-color: #1e2d48; color: #eef2f8; border-radius: 10px; backdrop-filter: blur(8px); }
     .stSlider > div > div > div { background: #111b30; }
-    .stButton > button { background: linear-gradient(135deg, #3b82f6, #6366f1); color: white; border: none; border-radius: 8px; padding: 0.35rem 1.2rem; font-weight: 600; transition: all 0.2s; }
-    .stButton > button:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(59,130,246,0.3); }
-    .stButton > button[kind="secondary"] { background: transparent; border: 1px solid #3b82f6; color: #60a5fa; }
-    .stNumberInput input, .stTextInput input, .stTextArea textarea { background: #111b30; border: 1px solid #1e2d48; color: #eef2f8; border-radius: 8px; }
-    .stMetric { background: #111b30; border: 1px solid #1e2d48; border-radius: 10px; padding: 0.8rem; }
-    .stMetric label { color: #5a6f8a !important; font-size: 0.75rem !important; }
-    .stMetric [data-testid="stMetricValue"] { color: #eef2f8 !important; font-size: 1.3rem !important; }
-    hr { border-color: #1e2d48 !important; margin: 1rem 0; }
-    .stAlert { background: #111b30; border: 1px solid #1e2d48; border-radius: 10px; color: #eef2f8; }
-    .stTabs [data-baseweb="tab-list"] { background: #0b1225; border-radius: 8px; gap: 0; }
-    .stTabs [data-baseweb="tab"] { color: #5a6f8a; font-weight: 500; font-size: 0.85rem; padding: 0.5rem 1rem; }
-    .stTabs [aria-selected="true"] { color: #60a5fa; }
-    div.stTabs [data-baseweb="tab-highlight"] { background: #3b82f6; }
-    .st-bw { background: #111b30; border: 1px solid #1e2d48; border-radius: 10px; }
-    .stDataFrame { background: #111b30; border: 1px solid #1e2d48; border-radius: 10px; }
-    .stCheckbox label { color: #8899b4; }
-    .card { background: #111b30; border: 1px solid #1e2d48; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; border-left: 3px solid #3b82f6; }
+    .stButton > button { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border: none; border-radius: 10px; padding: 0.4rem 1.4rem; font-weight: 600; transition: all 0.25s; box-shadow: 0 2px 12px rgba(59,130,246,0.15); }
+    .stButton > button:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(59,130,246,0.3); }
+    .stButton > button[kind="secondary"] { background: transparent; border: 1px solid rgba(59,130,246,0.4); color: #60a5fa; box-shadow: none; }
+    .stButton > button[kind="secondary"]:hover { background: rgba(59,130,246,0.08); border-color: #3b82f6; }
+    .stNumberInput input, .stTextInput input, .stTextArea textarea { background: rgba(17,27,48,0.8); border: 1px solid #1e2d48; color: #eef2f8; border-radius: 10px; }
+    .stNumberInput input:focus, .stTextInput input:focus, .stTextArea textarea:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+    .stMetric { background: rgba(17,27,48,0.6); border: 1px solid rgba(30,45,72,0.6); border-radius: 12px; padding: 0.8rem 1rem; backdrop-filter: blur(4px); }
+    .stMetric label { color: #5a6f8a !important; font-size: 0.72rem !important; text-transform: uppercase; letter-spacing: 0.04em; }
+    .stMetric [data-testid="stMetricValue"] { color: #eef2f8 !important; font-size: 1.35rem !important; font-weight: 700; }
+    hr { border-color: rgba(30,45,72,0.5) !important; margin: 0.8rem 0; }
+    .stAlert { background: rgba(17,27,48,0.8); border: 1px solid #1e2d48; border-radius: 12px; color: #eef2f8; backdrop-filter: blur(4px); }
+    .stTabs [data-baseweb="tab-list"] { background: rgba(11,18,37,0.6); border-radius: 10px; gap: 0; padding: 2px; border: 1px solid rgba(30,45,72,0.4); }
+    .stTabs [data-baseweb="tab"] { color: #5a6f8a; font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.9rem; border-radius: 8px; transition: all 0.2s; }
+    .stTabs [aria-selected="true"] { color: #eef2f8; background: rgba(59,130,246,0.15); }
+    div.stTabs [data-baseweb="tab-highlight"] { display: none; }
+    .st-bw { background: rgba(17,27,48,0.6); border: 1px solid #1e2d48; border-radius: 10px; }
+    .stDataFrame { background: rgba(17,27,48,0.6); border: 1px solid #1e2d48; border-radius: 10px; }
+    .stCheckbox label { color: #94a3b8; }
+    .card { background: rgba(17,27,48,0.5); border: 1px solid rgba(30,45,72,0.5); border-radius: 14px; padding: 1.2rem 1.4rem; margin-bottom: 0.8rem; backdrop-filter: blur(8px); transition: border-color 0.2s; }
+    .card:hover { border-color: rgba(59,130,246,0.25); }
     .card-center { text-align: center; }
     .glow-btn { text-decoration: none; display: inline-block; }
     .st-emotion-cache-1kyxreq { display: none; }
-    div[data-testid="stExpander"] { background: #111b30; border: 1px solid #1e2d48; border-radius: 10px; }
-    details { background: #111b30; border: 1px solid #1e2d48; border-radius: 10px; }
+    div[data-testid="stExpander"] { background: rgba(17,27,48,0.6); border: 1px solid #1e2d48; border-radius: 10px; }
+    details { background: rgba(17,27,48,0.6); border: 1px solid #1e2d48; border-radius: 10px; }
     .stRadio label { color: #cbd5e0 !important; }
-    .stRadio > div { gap: 0.25rem; }
-    /* Custom header banner for home */
+    .stRadio > div { gap: 0.15rem; }
     .hero { text-align: center; padding: 2rem 0 1rem 0; }
-    .hero-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
-    .hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    .hero p { font-size: 1.1rem; color: #5a6f8a; max-width: 700px; margin: 0 auto 1.5rem; }
-    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
-    .feature-card { background: #111b30; border: 1px solid #1e2d48; border-radius: 12px; padding: 1.25rem; text-align: center; transition: border-color 0.2s; }
-    .feature-card:hover { border-color: #3b82f6; }
-    .feature-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
-    .feature-card h3 { margin: 0 0 0.5rem 0; font-size: 1rem; }
-    .feature-card p { margin: 0; font-size: 0.85rem; color: #5a6f8a; }
-    @media (max-width: 768px) { .feature-grid { grid-template-columns: 1fr 1fr; } }
+    .hero-icon { font-size: 4.5rem; display: block; margin-bottom: 0.3rem; filter: drop-shadow(0 4px 20px rgba(59,130,246,0.2)); }
+    .hero h1 { font-size: 2.8rem; margin-bottom: 0.5rem; }
+    .hero p { font-size: 1.1rem; color: #64748b; max-width: 650px; margin: 0 auto 1.5rem; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.8rem; margin: 1.2rem 0; }
+    .feature-card { background: rgba(17,27,48,0.4); border: 1px solid rgba(30,45,72,0.4); border-radius: 14px; padding: 1.2rem 0.8rem; text-align: center; transition: all 0.25s; backdrop-filter: blur(4px); }
+    .feature-card:hover { border-color: rgba(59,130,246,0.4); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+    .feature-card .icon { font-size: 2.2rem; margin-bottom: 0.4rem; }
+    .feature-card h3 { margin: 0 0 0.3rem 0; font-size: 0.95rem; color: #eef2f8 !important; }
+    .feature-card p { margin: 0; font-size: 0.8rem; color: #64748b; line-height: 1.4; }
+    div[data-testid="stSlider"], div[data-testid="stSlider"] > div { padding-top: 0.2rem; }
+    div[data-testid="stSlider"] label { color: #94a3b8 !important; font-size: 0.8rem; }
+    .st-cb, .st-cd { background: #1e2d48 !important; }
+    .st-cc { background: linear-gradient(90deg, #3b82f6, #8b5cf6) !important; }
+    .stCheckbox label > div[data-testid="stMarkdownContainer"] { color: #94a3b8; }
+    span[data-baseweb="tag"] { background: rgba(59,130,246,0.15) !important; color: #60a5fa !important; border: 1px solid rgba(59,130,246,0.25) !important; border-radius: 6px !important; }
+    div.st-ae { background: transparent !important; }
+    .st-dg { background: rgba(255,255,255,0.03); }
 </style>
 """
 
